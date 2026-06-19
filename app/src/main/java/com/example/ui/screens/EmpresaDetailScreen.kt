@@ -26,6 +26,7 @@ import com.example.ui.components.ContaPGCChip
 import com.example.ui.components.ContaMonetariaTextStyle
 import com.example.ui.components.SituacaoPatrimonialBadge
 import com.example.ui.components.ValorMonetarioText
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,53 +104,50 @@ fun EmpresaDetailScreen(
                 }
             } else {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // Resumo Patrimonial Card (Fully Polished)
+                    // Resumo Patrimonial Card (Fully Polished Hero Treatment)
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(20.dp)
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .softCardShadow(radius = AppRadius.xl, elevation = 10.dp),
+                        shape = RoundedCornerShape(AppRadius.xl),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        Column(modifier = Modifier.padding(18.dp)) {
+                        Column(modifier = Modifier.padding(20.dp)) {
                             Text(
                                 text = "RESUMO PATRIMONIAL",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.secondary,
-                                letterSpacing = 1.sp
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.secondary
                             )
-                            Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(18.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("ACTIVO", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("ACTIVO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     ValorMonetarioText(
                                         valor = resumo?.totalActivo ?: 0.0,
                                         style = ContaMonetariaTextStyle.Subheader,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                VerticalDivider(modifier = Modifier.height(35.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                                VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                    Text("PASSIVO", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text("PASSIVO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     ValorMonetarioText(
                                         valor = resumo?.totalPassivo ?: 0.0,
                                         style = ContaMonetariaTextStyle.Subheader,
                                         color = MaterialTheme.colorScheme.error
                                     )
                                 }
-                                VerticalDivider(modifier = Modifier.height(35.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                                Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
-                                    Text("C. PRÓPRIO", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1.5f)) {
+                                    Text("C. PRÓPRIO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     ValorMonetarioText(
                                         valor = resumo?.capitalProprio ?: 0.0,
                                         style = ContaMonetariaTextStyle.Subheader,
@@ -159,9 +157,9 @@ fun EmpresaDetailScreen(
                             }
 
                             resumo?.let { r ->
-                                Spacer(modifier = Modifier.height(16.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(18.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                Spacer(modifier = Modifier.height(14.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,19 +174,19 @@ fun EmpresaDetailScreen(
                                     Column(modifier = Modifier.weight(1.5f)) {
                                         Text(
                                             text = "Equilíbrio Activo vs Passivo",
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                         )
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.height(6.dp))
                                         LinearProgressIndicator(
                                             progress = { fraction },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(6.dp)
+                                                .height(8.dp)
                                                 .clip(CircleShape),
                                             color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.error,
+                                            trackColor = MaterialTheme.colorScheme.error.copy(alpha = 0.25f),
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
@@ -203,52 +201,88 @@ fun EmpresaDetailScreen(
                         }
                     }
 
-                    // Action buttons segment
+                    // Action buttons segment (Redesigned as cards with nice badges and shadows)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Button(
+                        Surface(
                             onClick = onNavigateToAddElemento,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1.1f),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(vertical = 10.dp)
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(AppRadius.md),
+                            modifier = Modifier
+                                .weight(1f)
+                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp, color = BrandTeal)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text("Add Elemento", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Column(
+                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(34.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.White)
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("Add Elemento", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
                             }
                         }
 
-                        Button(
+                        Surface(
                             onClick = onNavigateToInventario,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer),
-                            modifier = Modifier.weight(1.3f),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(vertical = 10.dp)
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(AppRadius.md),
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.Assessment, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text("Gerar Inventário", fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Column(
+                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(34.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Assessment, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("Gerar Inventário", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSecondaryContainer, textAlign = TextAlign.Center)
                             }
                         }
 
-                        Button(
+                        Surface(
                             onClick = onNavigateToBalanco,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
-                            modifier = Modifier.weight(1.3f),
-                            shape = RoundedCornerShape(12.dp),
-                            contentPadding = PaddingValues(vertical = 10.dp)
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(AppRadius.md),
+                            modifier = Modifier
+                                .weight(1.1f)
+                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.PieChart, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text("Gerar Balanço", fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Column(
+                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(34.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.PieChart, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.tertiary)
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text("Gerar Balanço", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onTertiaryContainer, textAlign = TextAlign.Center)
                             }
                         }
                     }
@@ -265,8 +299,7 @@ fun EmpresaDetailScreen(
                     ) {
                         Text(
                             text = "Elementos Patrimoniais (${elementos.size})",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.onSurface,
                             letterSpacing = (-0.3).sp
                         )
@@ -289,7 +322,7 @@ fun EmpresaDetailScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.ListAlt,
+                                        imageVector = Icons.Default.List,
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
@@ -323,10 +356,11 @@ fun EmpresaDetailScreen(
 
                                 Card(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                    shape = RoundedCornerShape(14.dp),
-                                    modifier = Modifier.fillMaxWidth()
+                                    shape = RoundedCornerShape(AppRadius.md),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .softCardShadow(radius = AppRadius.md, elevation = 2.dp)
                                 ) {
                                     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                                         // Left Indicator Accent Bar - high craftsmanship visual scanability

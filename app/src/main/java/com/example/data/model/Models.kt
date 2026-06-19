@@ -2,6 +2,7 @@ package com.example.data.model
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.LocalDate
 
@@ -40,6 +41,10 @@ data class ContaPGC(
             childColumns = ["contaCodigo"],
             onDelete = ForeignKey.RESTRICT
         )
+    ],
+    indices = [
+        Index("empresaId"),
+        Index("contaCodigo")
     ]
 )
 data class ElementoPatrimonial(
@@ -64,6 +69,9 @@ data class ElementoPatrimonial(
             childColumns = ["empresaId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("empresaId")
     ]
 )
 data class Inventario(
@@ -85,6 +93,9 @@ data class Inventario(
             childColumns = ["empresaId"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index("empresaId")
     ]
 )
 data class Balanco(

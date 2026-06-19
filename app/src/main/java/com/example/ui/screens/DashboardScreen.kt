@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Empresa
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 import java.time.LocalDate
 
@@ -60,7 +61,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "ContaFácil PGC-NIRF",
+                            text = "Eu Conto PGC-NIRF",
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp,
                             letterSpacing = (-0.5).sp,
@@ -74,14 +75,15 @@ fun DashboardScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
+            ExtendedFloatingActionButton(
                 onClick = { showCreateDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Nova Empresa")
-            }
+                shape = RoundedCornerShape(AppRadius.md),
+                icon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp)) },
+                text = { Text("Nova Empresa", style = MaterialTheme.typography.labelLarge) },
+                modifier = Modifier.softCardShadow(radius = AppRadius.md, elevation = 6.dp, color = BrandTeal)
+            )
         },
         modifier = modifier
     ) { padding ->
@@ -92,94 +94,92 @@ fun DashboardScreen(
                 .padding(padding)
         ) {
             if (empresas.isEmpty()) {
-                // Empty State Placeholder
+                // Modernized Empty State Placeholder with glowing primary tint container
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
+                        .padding(28.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                            .size(110.dp)
+                            .softCardShadow(radius = 55.dp, elevation = 12.dp, color = BrandTeal)
+                            .background(
+                                brush = AppGradients.HeroGradient,
+                                shape = CircleShape
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Business,
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
+                            modifier = Modifier.size(52.dp),
+                            tint = BrandTealLight
                         )
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
                     Text(
                         text = "Nenhuma Empresa Registada",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "Comece criando uma empresa para gerir os seus elementos patrimoniais, gerar inventários oficiais e balanços em Moçambique.",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f)
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                     Button(
                         onClick = { showCreateDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                        shape = RoundedCornerShape(AppRadius.sm),
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+                        modifier = Modifier.height(48.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Configurar Nova Empresa", fontWeight = FontWeight.Bold)
+                        Text("Configurar Nova Empresa", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     item {
                         // Fluid, modern gradient hero card
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(20.dp),
+                                .padding(bottom = 8.dp)
+                                .softCardShadow(radius = AppRadius.lg, elevation = 6.dp),
+                            shape = RoundedCornerShape(AppRadius.lg),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(
-                                        brush = Brush.linearGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primary,
-                                                MaterialTheme.colorScheme.secondary
-                                            )
-                                        )
-                                    )
-                                    .padding(20.dp)
+                                    .background(brush = AppGradients.HeroGradient)
+                                    .padding(22.dp)
                             ) {
                                 Column {
                                     Text(
                                         text = "Gestão de Ativos & Balanços",
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 18.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary
+                                        fontSize = 19.sp,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        letterSpacing = (-0.5).sp
                                     )
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "Regule e categorize ativos, passivos e capital próprio em conformidade técnica com o PGC-NIRF de Moçambique.",
                                         fontSize = 12.sp,
                                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-                                        lineHeight = 16.sp
+                                        lineHeight = 17.sp
                                     )
                                 }
                             }
@@ -189,28 +189,26 @@ fun DashboardScreen(
                     item {
                         Text(
                             text = "PORTFÓLIO DE EMPRESAS",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.secondary,
-                            letterSpacing = 1.sp,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)
                         )
                     }
 
                     items(empresas) { emp ->
                         Card(
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(AppRadius.md),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
                                 .clickable {
                                     viewModel.selectEmpresa(emp.id)
                                     onNavigateToEmpresa(emp.id)
                                 }
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(18.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -218,27 +216,26 @@ fun DashboardScreen(
                                 ) {
                                     Text(
                                         text = emp.nome,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 18.sp,
+                                        style = MaterialTheme.typography.titleLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
+                                            .clip(RoundedCornerShape(AppRadius.xs))
                                             .background(MaterialTheme.colorScheme.primaryContainer)
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                            .padding(horizontal = 10.dp, vertical = 5.dp)
                                     ) {
                                         Text(
                                             text = emp.moeda,
-                                            fontSize = 11.sp,
+                                            style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.ExtraBold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                                Spacer(modifier = Modifier.height(12.dp))
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
@@ -258,12 +255,11 @@ fun DashboardScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "Actividade: ${emp.actividade}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Box(
                                         modifier = Modifier
@@ -282,8 +278,7 @@ fun DashboardScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "${emp.cidade} · NUIT: ${emp.nuit ?: "Sem NUIT"}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }

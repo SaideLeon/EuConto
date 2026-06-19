@@ -216,7 +216,7 @@ object PdfGenerator {
         canvas.drawText(resumo.situacaoPatrimonial.uppercase(Locale.getDefault()), 490f, y, paintBold)
         y += 30f
 
-        canvas.drawText("Elaborado em ContaFácil · PGC-NIRF Decreto 70/2009", 40f, y, paintText)
+        canvas.drawText("Elaborado em Eu Conto · PGC-NIRF Decreto 70/2009", 40f, y, paintText)
     }
 
     fun exportBalancoToPdf(
@@ -395,7 +395,7 @@ object PdfGenerator {
         canvas.drawText(dateText, 40f, y, paintBold)
         y += 25f
 
-        canvas.drawText("Gerado automaticamente via ContaFácil · Moçambique", 40f, y, paintText)
+        canvas.drawText("Gerado automaticamente via Eu Conto · Moçambique", 40f, y, paintText)
 
         pdfDocument.finishPage(page)
 

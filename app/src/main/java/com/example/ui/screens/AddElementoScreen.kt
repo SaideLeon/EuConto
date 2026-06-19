@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ContaPGC
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,10 +55,46 @@ fun AddElementoScreen(
         if (searchAccountQuery.isBlank()) {
             contas.take(15) // Keep it fast & lightweight
         } else {
-            contas.filter { c ->
-                c.codigo.contains(searchAccountQuery, ignoreCase = true) ||
-                        c.titulo.contains(searchAccountQuery, ignoreCase = true)
+            val q = searchAccountQuery.normalizeForSearch()
+            
+            contas.mapNotNull { c ->
+                val codeNorm = c.codigo.normalizeForSearch()
+                val titleNorm = c.titulo.normalizeForSearch()
+                
+                when {
+                    codeNorm.startsWith(q) || titleNorm.startsWith(q) -> {
+                        c to 1 // Highest priority (starts with)
+                    }
+                    codeNorm.contains(q) || titleNorm.contains(q) -> {
+                        c to 2 // Medium priority (contains substring)
+                    }
+                    else -> {
+                        val words = q.split(Regex("\\s+")).filter { it.isNotBlank() }
+                        if (words.size > 1) {
+                            val matchesAllWords = words.all { word ->
+                                codeNorm.contains(word) || titleNorm.contains(word) ||
+                                        isSubsequence(word, codeNorm) || isSubsequence(word, titleNorm)
+                            }
+                            if (matchesAllWords) {
+                                c to 3
+                            } else {
+                                null
+                            }
+                        } else if (words.isNotEmpty()) {
+                            val word = words[0]
+                            if (isSubsequence(word, codeNorm) || isSubsequence(word, titleNorm)) {
+                                c to 4 // Lower priority subsequence match
+                            } else {
+                                null
+                            }
+                        } else {
+                            null
+                        }
+                    }
+                }
             }
+            .sortedBy { it.second }
+            .map { it.first }
         }
     }
 
@@ -111,7 +148,7 @@ fun AddElementoScreen(
                     onValueChange = { descricao = it },
                     placeholder = { Text("Ex: Viatura Toyota Hilux, Caixa em Dinheiro") },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppRadius.sm),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.secondary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -119,14 +156,15 @@ fun AddElementoScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
+ 
             // Section 2: Toggle de calculo
             item {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    shape = RoundedCornerShape(AppRadius.md),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .softCardShadow(radius = AppRadius.md, elevation = 3.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -178,7 +216,7 @@ fun AddElementoScreen(
                                 value = quantidadeStr,
                                 onValueChange = { quantidadeStr = it },
                                 label = { Text("Qtd") },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.weight(1f)
                             )
@@ -187,7 +225,7 @@ fun AddElementoScreen(
                                 onValueChange = { valorUnitarioStr = it },
                                 label = { Text("Valor Unitário") },
                                 prefix = { Text("MZN ") },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 modifier = Modifier.weight(2f)
                             )
@@ -198,7 +236,7 @@ fun AddElementoScreen(
                             onValueChange = { valorTotalStr = it },
                             label = { Text("Valor Total") },
                             prefix = { Text("MZN ") },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(AppRadius.sm),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -209,10 +247,11 @@ fun AddElementoScreen(
             // Read-only calculated totals
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .softCardShadow(radius = AppRadius.md, elevation = 4.dp, color = BrandTeal),
+                    shape = RoundedCornerShape(AppRadius.md),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier
@@ -221,11 +260,10 @@ fun AddElementoScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Valor Total Calculado:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text("Valor Total Calculado:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         Text(
                             text = String.format("%.2f MZN", calculatedTotal),
-                            fontWeight = FontWeight.Black,
-                            fontSize = 18.sp,
+                            style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -236,10 +274,8 @@ fun AddElementoScreen(
             item {
                 Text(
                     text = "CLASSIFICAÇÃO DO PATRIMÓNIO (PGC-NIRF)",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary,
-                    letterSpacing = 1.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                 )
                 OutlinedTextField(
@@ -248,7 +284,7 @@ fun AddElementoScreen(
                     placeholder = { Text("Ex: Viatura, Caixa, Banco, Fornecedores") },
                     trailingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(AppRadius.sm),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.secondary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -416,3 +452,44 @@ fun AddElementoScreen(
         }
     }
 }
+
+private fun String.normalizeForSearch(): String {
+    val src = this.lowercase()
+    val sb = StringBuilder()
+    for (i in 0 until src.length) {
+        val c = src[i]
+        val norm = when (c) {
+            'á', 'à', 'â', 'ã', 'ä' -> 'a'
+            'é', 'è', 'ê', 'ë' -> 'e'
+            'í', 'ì', 'î', 'ï' -> 'i'
+            'ó', 'ò', 'ô', 'õ', 'ö' -> 'o'
+            'ú', 'ù', 'û', 'ü' -> 'u'
+            'ç' -> 'c'
+            'ñ' -> 'n'
+            else -> c
+        }
+        sb.append(norm)
+    }
+    
+    var result = sb.toString()
+    // Normalizações de variação dialectal (Português de Portugal "ct" -> "t", "cc" -> "c", etc.)
+    result = result.replace("ct", "t")
+    result = result.replace("cc", "c")
+    result = result.replace("pt", "t") // ex: recepção -> receção -> recetion
+    result = result.replace("pc", "c") // ex: recepção -> receçao
+    return result
+}
+
+private fun isSubsequence(query: String, target: String): Boolean {
+    if (query.isEmpty()) return true
+    var queryIdx = 0
+    var targetIdx = 0
+    while (queryIdx < query.length && targetIdx < target.length) {
+        if (query[queryIdx] == target[targetIdx]) {
+            queryIdx++
+        }
+        targetIdx++
+    }
+    return queryIdx == query.length
+}
+

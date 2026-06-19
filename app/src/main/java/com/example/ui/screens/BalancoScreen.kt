@@ -31,6 +31,7 @@ import com.example.data.model.Balanco
 import com.example.ui.components.ContaMonetariaTextStyle
 import com.example.ui.components.ValorMonetarioText
 import com.example.ui.pdf.PdfGenerator
+import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 import java.io.File
 import java.util.Locale
@@ -82,18 +83,17 @@ fun BalancoScreen(
             // Configuration Parameters Form (Ecrã 6)
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .softCardShadow(radius = AppRadius.lg, elevation = 4.dp),
+                    shape = RoundedCornerShape(AppRadius.lg),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
                             text = "CONFIGURAÇÕES DO BALANÇO",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            letterSpacing = 1.sp
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary
                         )
 
                         OutlinedTextField(
@@ -102,7 +102,7 @@ fun BalancoScreen(
                             label = { Text("Ano / Exercício Actual") },
                             placeholder = { Text("Ex: 2026") },
                             singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(AppRadius.sm),
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -117,7 +117,7 @@ fun BalancoScreen(
                                 label = { Text("Exercício Anterior (opcional)") },
                                 placeholder = { Text("Ex: 2025") },
                                 singleLine = true,
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 modifier = Modifier.weight(1f)
                             )
                             if (dataAnterior.isNotEmpty()) {
@@ -133,11 +133,11 @@ fun BalancoScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
 
                         // Tipo de Balanço
-                        Text("Tipo de Balanço:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Tipo de Balanço:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Card(
                                 onClick = { tipoBalanco = "INICIAL" },
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(AppRadius.xs),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (tipoBalanco == "INICIAL") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                 ),
@@ -156,7 +156,7 @@ fun BalancoScreen(
 
                             Card(
                                 onClick = { tipoBalanco = "FINAL" },
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(AppRadius.xs),
                                 colors = CardDefaults.cardColors(
                                     containerColor = if (tipoBalanco == "FINAL") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                                 ),
@@ -183,13 +183,13 @@ fun BalancoScreen(
                     val statusText = if (b.balancoFecha) "Balanço Fechado Correctamente" else "Diferença Pendente no Fecho"
                     val bColor = if (b.balancoFecha) Color(0xFF047857) else Color(0xFFBE123C)
                     val bgCol = if (b.balancoFecha) Color(0xFFF0FDF4) else Color(0xFFFFF1F2)
-                    val borderCol = if (b.balancoFecha) Color(0xFFA7F3D0) else Color(0xFFFECDD3)
 
                     Card(
                         colors = CardDefaults.cardColors(containerColor = bgCol),
-                        border = BorderStroke(1.dp, borderCol),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        shape = RoundedCornerShape(AppRadius.md),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .softCardShadow(radius = AppRadius.md, elevation = 2.dp, color = bColor)
                     ) {
                         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                             // Left accent anchor
@@ -328,11 +328,10 @@ fun BalancoScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 24.dp),
+                            .padding(bottom = 24.dp)
+                            .softCardShadow(radius = AppRadius.md, elevation = 6.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(AppRadius.md)
                     ) {
                         Column(modifier = Modifier.padding(18.dp)) {
                             // Header

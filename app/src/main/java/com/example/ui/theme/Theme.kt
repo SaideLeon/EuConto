@@ -13,32 +13,34 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme =
   darkColorScheme(
-    primary = ModernSecondary,
-    secondary = ModernTertiary,
-    tertiary = EquityColor,
-    background = Slate900,
-    surface = Slate800,
+    primary = BrandTeal,
+    secondary = BrandOcean,
+    tertiary = BrandAmber,
+    background = SurfaceCanvasDark,
+    surface = SurfaceCardDark,
+    surfaceVariant = SurfaceSunkenDark,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Slate50,
     onSurface = Slate50,
-    error = ErrorColor
+    error = BrandRose
   )
 
 private val LightColorScheme =
   lightColorScheme(
-    primary = ModernPrimary,
-    secondary = ModernSecondary,
-    tertiary = ModernTertiary,
-    background = GridBackground,
-    surface = Color.White,
+    primary = BrandPrimary,
+    secondary = BrandTeal,
+    tertiary = BrandOcean,
+    background = SurfaceCanvasLight,
+    surface = SurfaceCardLight,
+    surfaceVariant = SurfaceSunkenLight,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Slate900,
     onSurface = Slate900,
-    error = ErrorColor
+    error = BrandRose
   )
 
 @Composable
@@ -59,5 +61,10 @@ fun MyApplicationTheme(
       else -> LightColorScheme
     }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+  MaterialTheme(
+    colorScheme = colorScheme,
+    typography = Typography,
+    shapes = AppShapes,
+    content = content
+  )
 }
