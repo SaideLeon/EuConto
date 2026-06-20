@@ -1,5 +1,6 @@
 package com.example.data.gemini
 
+import android.content.Context
 import android.util.Log
 import com.example.BuildConfig
 import com.example.data.model.ContaPGC
@@ -20,15 +21,37 @@ object GeminiClassifier {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
+    fun getStoredApiKey(context: Context): String? {
+        val prefs = context.applicationContext.getSharedPreferences("Accounting_API_Settings", Context.MODE_PRIVATE)
+        return prefs.getString("gemini_api_key", null)
+    }
+
+    fun saveApiKey(context: Context, key: String) {
+        val prefs = context.applicationContext.getSharedPreferences("Accounting_API_Settings", Context.MODE_PRIVATE)
+        prefs.edit().putString("gemini_api_key", key.trim()).apply()
+    }
+
+    fun clearApiKey(context: Context) {
+        val prefs = context.applicationContext.getSharedPreferences("Accounting_API_Settings", Context.MODE_PRIVATE)
+        prefs.edit().remove("gemini_api_key").apply()
+    }
+
     suspend fun classifyElement(
+        context: Context,
         descricao: String,
         allContas: List<ContaPGC>
     ): ClassificationResult? {
-        val apiKey = BuildConfig.GEMINI_API_KEY
+        val storedKey = getStoredApiKey(context)
+        val apiKey = if (!storedKey.isNullOrBlank()) {
+            storedKey
+        } else {
+            BuildConfig.GEMINI_API_KEY
+        }
+
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
             Log.e(TAG, "Gemini API key is not configured or is placeholder.")
             return ClassificationResult(
-                error = "Chave da API do Gemini não configurada. Por favor, adicione sua chave de API nos Segredos (Secrets Panel) do Google AI Studio."
+                error = "Chave da API do Gemini não configurada. Por favor, clique na engrenagem de configuração azul com ícone de engrenagem/chave para definir sua chave de API nos ajustes da aplicação."
             )
         }
 

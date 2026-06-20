@@ -14,8 +14,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pin
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,7 +73,73 @@ fun DashboardScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
-                )
+                ),
+                actions = {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    var showKeyConfigDialog by remember { mutableStateOf(false) }
+                    var apiKeyValue by remember { mutableStateOf("") }
+
+                    IconButton(
+                        onClick = {
+                            apiKeyValue = com.example.data.gemini.GeminiClassifier.getStoredApiKey(context) ?: ""
+                            showKeyConfigDialog = true
+                        },
+                        modifier = Modifier.testTag("dashboard_settings_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configurações de API",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    if (showKeyConfigDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showKeyConfigDialog = false },
+                            title = { Text("Configurar Chave de API Gemini", fontWeight = FontWeight.Bold) },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Text(
+                                        text = "Insira sua chave de API pessoal do Gemini para usufruir de classificação automática com inteligência artificial.",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    OutlinedTextField(
+                                        value = apiKeyValue,
+                                        onValueChange = { apiKeyValue = it },
+                                        placeholder = { Text("Cole sua chave AI_KEY aqui...") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("config_api_key_field")
+                                    )
+                                    Text(
+                                        text = "Caso não informe uma chave pessoal, a aplicação tentará utilizar a chave global definida do servidor (.env).",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        if (apiKeyValue.isNotBlank()) {
+                                            com.example.data.gemini.GeminiClassifier.saveApiKey(context, apiKeyValue)
+                                        } else {
+                                            com.example.data.gemini.GeminiClassifier.clearApiKey(context)
+                                        }
+                                        showKeyConfigDialog = false
+                                    }
+                                ) {
+                                    Text("Salvar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showKeyConfigDialog = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {

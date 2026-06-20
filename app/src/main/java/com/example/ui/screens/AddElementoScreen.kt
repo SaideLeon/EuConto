@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ContaPGC
 import com.example.data.gemini.GeminiClassifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 import kotlinx.coroutines.launch
@@ -42,6 +43,7 @@ fun AddElementoScreen(
 ) {
     val contas by viewModel.contas.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Form states
     var descricao by remember { mutableStateOf("") }
@@ -55,6 +57,10 @@ fun AddElementoScreen(
     var aiLoading by remember { mutableStateOf(false) }
     var aiJustificativa by remember { mutableStateOf<String?>(null) }
     var aiError by remember { mutableStateOf<String?>(null) }
+    
+    // API Key Dialog state
+    var showApiKeyDialog by remember { mutableStateOf(false) }
+    var userApiKeyInput by remember { mutableStateOf(GeminiClassifier.getStoredApiKey(context) ?: "") }
 
     // Account lookup search state
     var selectedConta by remember { mutableStateOf<ContaPGC?>(null) }
@@ -165,7 +171,22 @@ fun AddElementoScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Habilitar Inteligência Artificial", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text("Classificar contas automaticamente", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Classificar contas automaticamente", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (GeminiClassifier.getStoredApiKey(context).isNullOrBlank()) "• [Configurar Chave]" else "• [Chave Ativa]",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clickable {
+                                            userApiKeyInput = GeminiClassifier.getStoredApiKey(context) ?: ""
+                                            showApiKeyDialog = true
+                                        }
+                                        .testTag("setup_key_trigger")
+                                )
+                            }
                         }
                         Switch(
                             checked = aiEnabled,
@@ -199,7 +220,7 @@ fun AddElementoScreen(
                                         aiError = null
                                         aiJustificativa = null
                                         try {
-                                            val res = GeminiClassifier.classifyElement(descricao, contas)
+                                            val res = GeminiClassifier.classifyElement(context, descricao, contas)
                                             withContext(Dispatchers.Main) {
                                                 if (res != null) {
                                                     if (res.error != null) {
@@ -274,12 +295,29 @@ fun AddElementoScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text(
                                     text = if (aiError != null) "Aviso de IA" else "Classificação Sugerida por IA",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
                                     color = if (aiError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Configurar Chave",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clickable {
+                                            userApiKeyInput = GeminiClassifier.getStoredApiKey(context) ?: ""
+                                            showApiKeyDialog = true
+                                        }
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                        .testTag("configure_key_from_result")
                                 )
                             }
                             Spacer(modifier = Modifier.height(6.dp))
@@ -290,6 +328,53 @@ fun AddElementoScreen(
                             )
                         }
                     }
+                }
+
+                if (showApiKeyDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showApiKeyDialog = false },
+                        title = { Text("Configurar Chave de API Gemini", fontWeight = FontWeight.Bold) },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text(
+                                    text = "Insira sua chave de API pessoal do Gemini para usufruir de inteligência artificial em tempo real. A chave ficará salva com segurança apenas neste dispositivo pós-instalação.",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                OutlinedTextField(
+                                    value = userApiKeyInput,
+                                    onValueChange = { userApiKeyInput = it },
+                                    placeholder = { Text("Cole sua chave AI_KEY aqui...") },
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth().testTag("custom_api_key_input")
+                                )
+                                Text(
+                                    text = "Se deixar em branco, o aplicativo tentará usar a chave global pré-configurada no servidor (.env).",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    if (userApiKeyInput.isNotBlank()) {
+                                        GeminiClassifier.saveApiKey(context, userApiKeyInput)
+                                    } else {
+                                        GeminiClassifier.clearApiKey(context)
+                                    }
+                                    showApiKeyDialog = false
+                                }
+                            ) {
+                                Text("Salvar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showApiKeyDialog = false }) {
+                                Text("Cancelar")
+                            }
+                        }
+                    )
                 }
             }
  

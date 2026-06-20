@@ -49,6 +49,7 @@ fun InventarioScreen(
     val empresa by viewModel.selectedEmpresa.collectAsState()
     val classes by viewModel.inventarioClasses.collectAsState()
     val resumo by viewModel.resumoPatrimonial.collectAsState()
+    val contas by viewModel.contas.collectAsState(initial = emptyList())
 
     // Config options state
     var dataRef by remember { mutableStateOf(java.time.LocalDate.now().toString()) }
@@ -249,7 +250,7 @@ fun InventarioScreen(
                                     descricao = tipoDescricao,
                                     momento = momento
                                 )
-                                val file = PdfGenerator.exportInventarioToPdf(context, emp, dummyRecord, classes, res)
+                                val file = PdfGenerator.exportInventarioToPdf(context, emp, dummyRecord, classes, res, contas)
                                 if (file != null) {
                                     generatedFile = file
                                     operationMsg = "PDF oficial do inventário exportado com sucesso!"

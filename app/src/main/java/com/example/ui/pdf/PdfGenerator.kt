@@ -9,6 +9,7 @@ import android.graphics.pdf.PdfDocument
 import com.example.data.model.Empresa
 import com.example.data.model.Inventario
 import com.example.data.model.Balanco
+import com.example.data.model.ContaPGC
 import com.example.data.repository.GrupoClasse
 import com.example.data.repository.BalancoCalculado
 import com.example.data.repository.ResumoPatrimonial
@@ -36,23 +37,26 @@ object PdfGenerator {
         empresa: Empresa,
         inventario: Inventario,
         classes: List<GrupoClasse>,
-        resumo: ResumoPatrimonial
+        resumo: ResumoPatrimonial,
+        allContas: List<ContaPGC> = emptyList()
     ): File? {
         val pdfDocument = PdfDocument()
-        // Standard A4 dimensions in points: 595 x 842
         val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-        val canvas: Canvas = page.canvas
+        var currentPage = pdfDocument.startPage(pageInfo)
+        var canvas = currentPage.canvas
+        var pageNumber = 1
+        var y = 50f
+        var tabelaStartY = 0f
 
         val paintText = Paint().apply {
             color = Color.BLACK
-            textSize = 10f
+            textSize = 9f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         }
 
         val paintTitle = Paint().apply {
             color = Color.rgb(21, 101, 192) // Financial Blue
-            textSize = 16f
+            textSize = 15f
             typeface = Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD)
         }
 
@@ -64,104 +68,418 @@ object PdfGenerator {
 
         val paintBold = Paint().apply {
             color = Color.BLACK
-            textSize = 10f
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textSize = 9f
+            typeface = Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD)
+        }
+
+        val paintTableHeaderText = Paint().apply {
+            color = Color.rgb(33, 33, 33)
+            textSize = 8.5f
+            typeface = Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD)
         }
 
         val linePaint = Paint().apply {
-            color = Color.LTGRAY
-            strokeWidth = 1f
+            color = Color.BLACK
+            strokeWidth = 1.0f
         }
 
-        var y = 50f
+        val lineThinPaint = Paint().apply {
+            color = Color.rgb(180, 180, 180)
+            strokeWidth = 0.5f
+        }
 
+        val paintTableHeaderBg = Paint().apply {
+            color = Color.rgb(240, 240, 240)
+            style = Paint.Style.FILL
+        }
+
+        val paintSectionBg = Paint().apply {
+            color = Color.rgb(245, 245, 245)
+            style = Paint.Style.FILL
+        }
+
+        // Funções de desenho auxiliares
+        fun wrapText(text: String, maxWidth: Float, paint: Paint): List<String> {
+            val words = text.split(" ")
+            val lines = mutableListOf<String>()
+            var currentLine = StringBuilder()
+            
+            for (word in words) {
+                val testLine = if (currentLine.isEmpty()) word else "${currentLine} ${word}"
+                val width = paint.measureText(testLine)
+                if (width <= maxWidth) {
+                    currentLine.append(if (currentLine.isEmpty()) word else " ${word}")
+                } else {
+                    if (currentLine.isNotEmpty()) {
+                        lines.add(currentLine.toString())
+                    }
+                    currentLine = StringBuilder(word)
+                }
+            }
+            if (currentLine.isNotEmpty()) {
+                lines.add(currentLine.toString())
+            }
+            return if (lines.isEmpty()) listOf("") else lines
+        }
+
+        fun drawTextRightAligned(c: Canvas, text: String, x: Float, yPos: Float, paint: Paint) {
+            val oldAlign = paint.textAlign
+            paint.textAlign = Paint.Align.RIGHT
+            c.drawText(text, x, yPos, paint)
+            paint.textAlign = oldAlign
+        }
+
+        fun drawDescriptionCell(text: String, x: Float, yPos: Float, paint: Paint, maxWidth: Float): Float {
+            val lines = wrapText(text, maxWidth, paint)
+            var currentY = yPos
+            for (line in lines) {
+                canvas.drawText(line, x, currentY, paint)
+                if (line != lines.last()) {
+                    currentY += 12f
+                }
+            }
+            return currentY
+        }
+
+        fun drawTableHeaders() {
+            canvas.drawRect(40f, y - 10f, 555f, y + 8f, paintTableHeaderBg)
+            canvas.drawLine(40f, y - 10f, 555f, y - 10f, linePaint)
+            canvas.drawLine(40f, y + 8f, 555f, y + 8f, linePaint)
+            
+            canvas.drawText("CL.", 43f, y, paintTableHeaderText)
+            canvas.drawText("CONTA", 60f, y, paintTableHeaderText)
+            canvas.drawText("DESCRIÇÃO DOS ELEMENTOS", 90f, y, paintTableHeaderText)
+            
+            val paintHeaderRight = Paint(paintTableHeaderText).apply { textAlign = Paint.Align.RIGHT }
+            canvas.drawText("PARCIAL (MZN)", 455f, y, paintHeaderRight)
+            canvas.drawText("SUBTOTAL (MZN)", 550f, y, paintHeaderRight)
+            
+            y += 18f
+            tabelaStartY = y - 28f
+        }
+
+        fun drawHeaderOnNewPage() {
+            y = 50f
+            canvas.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
+            y += 15f
+            canvas.drawText("INVENTÁRIO CLASSIFICADO - Continuação (${empresa.nome.uppercase(Locale.getDefault())})", 40f, y, paintBold)
+            canvas.drawText("Pág. ${pageNumber}", 520f, y, paintText)
+            y += 20f
+            
+            drawTableHeaders()
+        }
+
+        fun executePageBreak() {
+            // Desenhar linhas horizontais e verticais de fechamento
+            canvas.drawLine(40f, y - 8f, 555f, y - 8f, linePaint)
+            canvas.drawLine(40f, tabelaStartY, 40f, y - 8f, linePaint)
+            canvas.drawLine(57f, tabelaStartY, 57f, y - 8f, linePaint)
+            canvas.drawLine(87f, tabelaStartY, 87f, y - 8f, linePaint)
+            canvas.drawLine(375f, tabelaStartY, 375f, y - 8f, linePaint)
+            canvas.drawLine(460f, tabelaStartY, 460f, y - 8f, linePaint)
+            canvas.drawLine(555f, tabelaStartY, 555f, y - 8f, linePaint)
+            
+            pdfDocument.finishPage(currentPage)
+            
+            pageNumber++
+            val pageInfoNew = PdfDocument.PageInfo.Builder(595, 842, pageNumber).create()
+            currentPage = pdfDocument.startPage(pageInfoNew)
+            canvas = currentPage.canvas
+            
+            drawHeaderOnNewPage()
+        }
+
+        fun checkPageOverflow(requiredSpace: Float) {
+            if (y + requiredSpace > 780f) {
+                executePageBreak()
+            }
+        }
+
+        fun getOrdemClasseActivo(classe: Int): Int {
+            return when (classe) {
+                3 -> 1
+                2 -> 2
+                4 -> 3
+                1 -> 4
+                else -> 5
+            }
+        }
+
+        // Corrigido para corresponder à ordem solicitada de prioridade passiva
+        fun getOrdemContaPassivo(codigo: String): Int {
+            return when {
+                codigo.startsWith("4.3") -> 1
+                codigo.startsWith("4.6") -> 2
+                codigo.startsWith("4.2") -> 3
+                else -> 4
+            }
+        }
+
+        // --- Início das impressões na página 1 ---
         // Document Headers
         canvas.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
-        y += 25f
-        canvas.drawText("INVENTÁRIO CLASSIFICADO - ${inventario.descricao}", 40f, y, paintTitle)
-        y += 20f
+        y += 22f
+        canvas.drawText("INVENTÁRIO PATRIMONIAL EXERCIDO", 40f, y, paintTitle)
+        y += 18f
 
         // Corporate Metadata
-        paintText.textSize = 10f
+        paintText.textSize = 9.5f
         canvas.drawText("Empresa: ${empresa.nome}", 40f, y, paintBold)
         canvas.drawText("Data Ref: ${inventario.data}", 350f, y, paintText)
-        y += 15f
+        y += 14f
         canvas.drawText("Actividade: ${empresa.actividade}", 40f, y, paintText)
         canvas.drawText("Cidade: ${empresa.cidade}", 350f, y, paintText)
-        y += 15f
+        y += 14f
         canvas.drawText("NUIT: ${empresa.nuit ?: "N/D"}", 40f, y, paintText)
-        canvas.drawText("Momento: ${inventario.momento}", 350f, y, paintText)
-        y += 20f
-
-        // Decorative separator line
-        canvas.drawLine(40f, y, 555f, y, linePaint)
+        canvas.drawText("Momento / Extensão: ${inventario.momento} / ${inventario.tipo}", 350f, y, paintText)
         y += 25f
 
-        // Table Header
-        canvas.drawText("CONTA / DESCRIÇÃO", 40f, y, paintBold)
-        canvas.drawText("QTD", 380f, y, paintBold)
-        canvas.drawText("V. UNIT", 430f, y, paintBold)
-        canvas.drawText("VALOR TOTAL", 490f, y, paintBold)
-        y += 10f
-        canvas.drawLine(40f, y, 555f, y, linePaint)
-        y += 15f
+        // Desenhar a primeira tabela de cabeçalho
+        drawTableHeaders()
 
-        // Populate items
-        for (classe in classes) {
-            // Class header
-            canvas.drawText(classe.tituloClasse.uppercase(Locale.getDefault()), 40f, y, paintBold)
-            canvas.drawText(formatCurrency(classe.subtotal), 490f, y, paintBold)
-            y += 15f
+        // Agrupando todas as contas
+        val contasTotalMap = allContas.associateBy { it.codigo }
+        val todosGrupoContas = classes.flatMap { it.contas }
 
-            for (grupo in classe.contas) {
-                // Account subheader
-                canvas.drawText("  ${grupo.conta.codigo} - ${grupo.conta.titulo}", 40f, y, paintBold)
-                canvas.drawText(formatCurrency(grupo.subtotal), 490f, y, paintBold)
-                y += 15f
+        val activos = todosGrupoContas.filter { 
+            val nat = it.conta.natureza
+            nat == "ACTIVO" || nat == "GASTO"
+        }.sortedWith(compareBy<com.example.data.repository.GrupoConta>({ getOrdemClasseActivo(it.conta.classe) }, { it.conta.codigo }))
 
-                // If Analitico, draw detailed individual elements
-                if (inventario.descricao == "ANALITICO") {
-                    for (item in grupo.itens) {
-                        canvas.drawText("    · ${item.descricao}", 40f, y, paintText)
-                        canvas.drawText(String.format("%.1f", item.quantidade), 380f, y, paintText)
-                        
-                        val uValFormatted = item.valorUnitario?.let { formatCurrency(it) } ?: "-"
-                        canvas.drawText(uValFormatted, 420f, y, paintText)
-                        
-                        canvas.drawText(formatCurrency(item.valor), 490f, y, paintText)
-                        y += 15f
+        val passivos = todosGrupoContas.filter { 
+            val nat = it.conta.natureza
+            nat == "PASSIVO" || nat == "RENDIMENTO" || nat == "RESULTADO"
+        }.sortedWith(compareBy<com.example.data.repository.GrupoConta>({ getOrdemContaPassivo(it.conta.codigo) }, { it.conta.codigo }))
 
-                        if (y > 780f) {
-                            // Break page if it overflows standard A4 height
-                            break
-                        }
+        val capitalProprio = todosGrupoContas.filter { 
+            it.conta.natureza == "CAPITAL_PROPRIO"
+        }.sortedBy { it.conta.codigo }
+
+        val seccoes = listOf(
+            Triple("ACTIVOS (BENS E DIREITOS)", activos, resumo.totalActivo),
+            Triple("PASSIVO (OBRIGAÇÕES)", passivos, resumo.totalPassivo),
+            Triple("CAPITAL PRÓPRIO (SITUAÇÃO LÍQUIDA)", capitalProprio, resumo.capitalProprio)
+        )
+
+        for ((seccaoNome, grupoContas, totalSeccao) in seccoes) {
+            if (grupoContas.isEmpty()) continue
+            
+            // Título de Seção
+            checkPageOverflow(30f)
+            canvas.drawRect(40f, y - 10f, 555f, y + 8f, paintSectionBg)
+            
+            val sectionPaint = Paint(paintBold).apply { textAlign = Paint.Align.CENTER; textSize = 9.5f }
+            canvas.drawText(seccaoNome, 297f, y, sectionPaint)
+            canvas.drawLine(40f, y + 8f, 555f, y + 8f, linePaint)
+            y += 18f
+            
+            var ultimaClasseDesenhada: Int? = null
+            var ultimaContaPaiDesenhada: String? = null
+            
+            for (grupo in grupoContas) {
+                // Checar Classe
+                val classeId = grupo.conta.classe
+                if (classeId != ultimaClasseDesenhada) {
+                    checkPageOverflow(25f)
+                    val classeTitulo = when (classeId) {
+                        1 -> "Meios Financeiros"
+                        2 -> "Inventários e Activos Biológicos"
+                        3 -> "Investimentos de Capital"
+                        4 -> "Contas a Receber, Contas a Pagar, Acréscimos e Diferimentos"
+                        5 -> "Capital Próprio"
+                        6 -> "Gastos e Perdas"
+                        7 -> "Rendimentos e Ganhos"
+                        8 -> "Resultados"
+                        else -> "Outras Classes"
                     }
+                    
+                    canvas.drawText(classeId.toString(), 45f, y, paintBold)
+                    canvas.drawText("Classe $classeId - ${classeTitulo.uppercase(Locale.getDefault())}", 90f, y, paintBold)
+                    canvas.drawLine(40f, y + 4f, 555f, y + 4f, lineThinPaint)
+                    y += 16f
+                    ultimaClasseDesenhada = classeId
                 }
                 
-                if (y > 780f) break
+                // Checar Conta Pai de 2 dígitos
+                val codigoPartes = grupo.conta.codigo.split(".")
+                val codigoPai = if (codigoPartes.size >= 2) "${codigoPartes[0]}.${codigoPartes[1]}" else grupo.conta.codigo
+                if (codigoPai != ultimaContaPaiDesenhada) {
+                    checkPageOverflow(25f)
+                    val paiObjeto = contasTotalMap[codigoPai]
+                    val paiTitulo = paiObjeto?.titulo ?: grupo.conta.titulo
+                    
+                    canvas.drawText(codigoPai, 60f, y, paintBold)
+                    canvas.drawText(paiTitulo.uppercase(Locale.getDefault()), 90f, y, paintBold)
+                    canvas.drawLine(40f, y + 4f, 555f, y + 4f, lineThinPaint)
+                    y += 16f
+                    ultimaContaPaiDesenhada = codigoPai
+                }
+                
+                // Se a subconta for de nível mais baixo que a conta de 2 dígitos pai, a mostramos como linha intermediária
+                if (grupo.conta.codigo != codigoPai) {
+                    checkPageOverflow(25f)
+                    canvas.drawText(grupo.conta.codigo, 60f, y, paintBold)
+                    canvas.drawText("  ${grupo.conta.titulo}", 90f, y, paintBold)
+                    canvas.drawLine(40f, y + 4f, 555f, y + 4f, lineThinPaint)
+                    y += 16f
+                }
+                
+                // Desenhar Elementos Patrimoniais individuais (ANALITICO)
+                if (inventario.descricao == "ANALITICO") {
+                    val totalItens = grupo.itens.size
+                    for (index in grupo.itens.indices) {
+                        val item = grupo.itens[index]
+                        
+                        // Compor descrição contábil detalhada se houver Qtd e Unidade
+                        val rawDesc = item.descricao
+                        val itemDesc = if (item.quantidade > 1.0 && item.valorUnitario != null) {
+                            "$rawDesc (${String.format(Locale.getDefault(), "%.0f", item.quantidade)} x ${formatCurrency(item.valorUnitario)})"
+                        } else {
+                            rawDesc
+                        }
+                        
+                        val linesCount = wrapText(itemDesc, 275f, paintText).size
+                        val spaceNeeded = 14f + (linesCount - 1) * 12f
+                        
+                        checkPageOverflow(spaceNeeded)
+                        
+                        val xDescStart = 100f
+                        val yFinal = drawDescriptionCell(itemDesc, xDescStart, y, paintText, 275f)
+                        
+                        if (totalItens == 1) {
+                            drawTextRightAligned(canvas, formatCurrency(item.valor), 550f, y, paintText)
+                        } else {
+                            // 2+ itens do grupo -> Coluna 3
+                            drawTextRightAligned(canvas, formatCurrency(item.valor), 455f, y, paintText)
+                            // Última linha do grupo de conta -> Coluna 4 (soma parcial totalizada)
+                            if (index == totalItens - 1) {
+                                drawTextRightAligned(canvas, formatCurrency(grupo.subtotal), 550f, y, paintBold)
+                            }
+                        }
+                        
+                        canvas.drawLine(40f, yFinal + 4f, 555f, yFinal + 4f, lineThinPaint)
+                        y = yFinal + 16f
+                    }
+                } else {
+                    // SINTÉTICO - Mostrar saldo agregado direto na coluna 4
+                    val itemDesc = "[Saldo agregado da conta ${grupo.conta.codigo}]"
+                    checkPageOverflow(18f)
+                    canvas.drawText(itemDesc, 100f, y, paintText)
+                    drawTextRightAligned(canvas, formatCurrency(grupo.subtotal), 550f, y, paintBold)
+                    canvas.drawLine(40f, y + 4f, 555f, y + 4f, lineThinPaint)
+                    y += 16f
+                }
             }
             
-            y += 10f
-            if (y > 780f) break
-        }
-
-        // Summary box
-        if (y > 700f) {
-            // Add custom secondary page if height is tight
-            pdfDocument.finishPage(page)
-            val pageInfo2 = PdfDocument.PageInfo.Builder(595, 842, 2).create()
-            val page2 = pdfDocument.startPage(pageInfo2)
-            val canvas2 = page2.canvas
-            y = 50f
+            // Totalizador final de Seccao
+            checkPageOverflow(30f)
+            canvas.drawRect(40f, y - 10f, 555f, y + 8f, paintSectionBg)
+            canvas.drawLine(40f, y - 10f, 555f, y - 10f, linePaint)
+            canvas.drawLine(40f, y + 8f, 555f, y + 8f, linePaint)
             
-            drawSummarySection(canvas2, resumo, y, paintBold, paintText, linePaint)
-            pdfDocument.finishPage(page2)
-        } else {
-            drawSummarySection(canvas, resumo, y, paintBold, paintText, linePaint)
-            pdfDocument.finishPage(page)
+            val totalLabel = when (seccaoNome) {
+                "ACTIVOS (BENS E DIREITOS)" -> "TOTAL DO ACTIVO"
+                "PASSIVO (OBRIGAÇÕES)" -> "TOTAL DO PASSIVO"
+                else -> "TOTAL DO CAPITAL PRÓPRIO"
+            }
+            canvas.drawText(totalLabel, 90f, y, paintBold)
+            drawTextRightAligned(canvas, formatCurrency(totalSeccao), 550f, y, paintBold)
+            y += 24f
         }
 
-        // Write to cache directory or downloads directory safely
+        // Fechamos a última página da tabela de inventário
+        canvas.drawLine(40f, y - 8f, 555f, y - 8f, linePaint)
+        canvas.drawLine(40f, tabelaStartY, 40f, y - 8f, linePaint)
+        canvas.drawLine(57f, tabelaStartY, 57f, y - 8f, linePaint)
+        canvas.drawLine(87f, tabelaStartY, 87f, y - 8f, linePaint)
+        canvas.drawLine(375f, tabelaStartY, 375f, y - 8f, linePaint)
+        canvas.drawLine(460f, tabelaStartY, 460f, y - 8f, linePaint)
+        canvas.drawLine(555f, tabelaStartY, 555f, y - 8f, linePaint)
+        
+        pdfDocument.finishPage(currentPage)
+
+        // --- Página Inicial de Conclusão, Comentário de Situação Líquida Contábil e Assinaturas ---
+        pageNumber++
+        val pageInfoConclusion = PdfDocument.PageInfo.Builder(595, 842, pageNumber).create()
+        val conclusionPage = pdfDocument.startPage(pageInfoConclusion)
+        val canvasC = conclusionPage.canvas
+
+        y = 50f
+        canvasC.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
+        y += 25f
+        canvasC.drawText("COMENTÁRIO PATRIMONIAL & SÍNTESE", 40f, y, paintTitle)
+        y += 15f
+        canvasC.drawLine(40f, y, 555f, y, linePaint)
+        y += 30f
+
+        canvasC.drawText("RESUMO PATRIMONIAL DE CONCILIAÇÃO", 40f, y, paintBold)
+        y += 25f
+
+        val xLabel = 60f
+        val xVal = 500f
+
+        canvasC.drawText("Total de Bens (Ativos Físicos):", xLabel, y, paintText)
+        drawTextRightAligned(canvasC, formatCurrency(resumo.totalBens), xVal, y, paintBold)
+        y += 18f
+
+        canvasC.drawText("Total de Direitos (Contas a Receber):", xLabel, y, paintText)
+        drawTextRightAligned(canvasC, formatCurrency(resumo.totalDireitos), xVal, y, paintBold)
+        y += 18f
+
+        canvasC.drawLine(xLabel, y, xVal, y, lineThinPaint)
+        y += 18f
+
+        canvasC.drawText("TOTAL DO ACTIVO:", xLabel, y, paintBold)
+        drawTextRightAligned(canvasC, formatCurrency(resumo.totalActivo), xVal, y, paintBold)
+        y += 24f
+
+        canvasC.drawText("TOTAL DO PASSIVO (Obrigações):", xLabel, y, paintBold)
+        drawTextRightAligned(canvasC, formatCurrency(resumo.totalPassivo), xVal, y, paintBold)
+        y += 24f
+
+        canvasC.drawLine(xLabel, y, xVal, y, linePaint)
+        y += 18f
+
+        canvasC.drawText("SITUAÇÃO PATRIMONIAL LÍQUIDA (Capital Próprio):", xLabel, y, paintBold)
+        drawTextRightAligned(canvasC, formatCurrency(resumo.capitalProprio), xVal, y, paintBold)
+        y += 35f
+
+        // Texto do Comentário
+        val situacaoTexto = when (resumo.situacaoColor) {
+            "VERDE" -> "é superior"
+            "AMARELO" -> "é igual"
+            else -> "é inferior"
+        }
+        val comentarioPatrimonial = "Comentário:\nA empresa ${empresa.nome} apresenta uma situação patrimonial " +
+                "${resumo.situacaoPatrimonial.uppercase(Locale.getDefault())} na data de referência ${inventario.data}, " +
+                "visto que o valor total do Activo reunido (${formatCurrency(resumo.totalActivo)}) $situacaoTexto " +
+                "em relação às obrigações do Passivo calculadas (${formatCurrency(resumo.totalPassivo)}), " +
+                "concluindo-se com um Capital Próprio líquido ajustado de ${formatCurrency(resumo.capitalProprio)}."
+
+        canvasC.drawText("COMENTÁRIO EXECUTIVO DA SITUAÇÃO PATRIMONIAL:", 40f, y, paintBold)
+        y += 20f
+
+        val linesComentario = wrapText(comentarioPatrimonial, 515f, paintText)
+        for (line in linesComentario) {
+            canvasC.drawText(line, 40f, y, paintText)
+            y += 15f
+        }
+        y += 55f
+
+        // Linhas de Assinaturas
+        canvasC.drawLine(60f, y, 250f, y, linePaint)
+        canvasC.drawLine(340f, y, 530f, y, linePaint)
+        y += 15f
+
+        val paintCenterText = Paint(paintText).apply { textAlign = Paint.Align.CENTER }
+        canvasC.drawText("O Técnico de Contabilidade", 155f, y, paintCenterText)
+        canvasC.drawText("A Gerência da Empresa", 435f, y, paintCenterText)
+        y += 15f
+        canvasC.drawText("_________________________", 155f, y, paintCenterText)
+        canvasC.drawText("_________________________", 435f, y, paintCenterText)
+
+        pdfDocument.finishPage(conclusionPage)
+
         val directory = context.getExternalFilesDir("Documents") ?: context.cacheDir
         val file = File(directory, "Inventario_${empresa.nome.replace(" ", "_")}_${System.currentTimeMillis()}.pdf")
         
@@ -175,48 +493,6 @@ object PdfGenerator {
             pdfDocument.close()
             null
         }
-    }
-
-    private fun drawSummarySection(
-        canvas: Canvas,
-        resumo: ResumoPatrimonial,
-        startY: Float,
-        paintBold: Paint,
-        paintText: Paint,
-        linePaint: Paint
-    ) {
-        var y = startY
-        canvas.drawLine(40f, y, 555f, y, linePaint)
-        y += 20f
-
-        canvas.drawText("RESUMO PATRIMONIAL", 40f, y, paintBold)
-        y += 15f
-
-        canvas.drawText("Total de Bens (Ativos Físicos):", 40f, y, paintText)
-        canvas.drawText(formatCurrency(resumo.totalBens), 490f, y, paintText)
-        y += 15f
-
-        canvas.drawText("Total de Direitos (Contas a Receber):", 40f, y, paintText)
-        canvas.drawText(formatCurrency(resumo.totalDireitos), 490f, y, paintText)
-        y += 15f
-
-        canvas.drawText("TOTAL DO ACTIVO:", 40f, y, paintBold)
-        canvas.drawText(formatCurrency(resumo.totalActivo), 490f, y, paintBold)
-        y += 20f
-
-        canvas.drawText("TOTAL DO PASSIVO (Obrigações):", 40f, y, paintBold)
-        canvas.drawText(formatCurrency(resumo.totalPassivo), 490f, y, paintBold)
-        y += 20f
-
-        canvas.drawText("SITUAÇÃO PATRIMONIAL LÍQUIDA (Capital Próprio):", 40f, y, paintBold)
-        canvas.drawText(formatCurrency(resumo.capitalProprio), 490f, y, paintBold)
-        y += 15f
-
-        canvas.drawText("Classificação de Situação:", 40f, y, paintText)
-        canvas.drawText(resumo.situacaoPatrimonial.uppercase(Locale.getDefault()), 490f, y, paintBold)
-        y += 30f
-
-        canvas.drawText("Elaborado em Eu Conto · PGC-NIRF Decreto 70/2009", 40f, y, paintText)
     }
 
     fun exportBalancoToPdf(
