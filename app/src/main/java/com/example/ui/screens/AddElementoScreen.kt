@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -25,8 +26,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ContaPGC
+import com.example.data.gemini.GeminiClassifier
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +41,7 @@ fun AddElementoScreen(
     modifier: Modifier = Modifier
 ) {
     val contas by viewModel.contas.collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
 
     // Form states
     var descricao by remember { mutableStateOf("") }
@@ -44,6 +50,11 @@ fun AddElementoScreen(
     var valorUnitarioStr by remember { mutableStateOf("") }
     var valorTotalStr by remember { mutableStateOf("") }
     var prazoMesesStr by remember { mutableStateOf("") }
+
+    // AI states
+    var aiLoading by remember { mutableStateOf(false) }
+    var aiJustificativa by remember { mutableStateOf<String?>(null) }
+    var aiError by remember { mutableStateOf<String?>(null) }
 
     // Account lookup search state
     var selectedConta by remember { mutableStateOf<ContaPGC?>(null) }
@@ -135,14 +146,110 @@ fun AddElementoScreen(
         ) {
             // Section 1: Descrição
             item {
-                Text(
-                    text = "DESCRIÇÃO DO BEM OU OBRIGAÇÃO",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    letterSpacing = 1.sp,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
+                var aiEnabled by remember { mutableStateOf(true) }
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(AppRadius.md),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .softCardShadow(radius = AppRadius.md, elevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Habilitar Inteligência Artificial", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Classificar contas automaticamente", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(
+                            checked = aiEnabled,
+                            onCheckedChange = { aiEnabled = it },
+                            modifier = Modifier.testTag("ai_toggle_switch")
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "DESCRIÇÃO DO BEM OU OBRIGAÇÃO",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        letterSpacing = 1.sp
+                    )
+                    
+                    if (aiEnabled) {
+                        TextButton(
+                            onClick = {
+                                if (descricao.isNotBlank()) {
+                                    scope.launch(Dispatchers.IO) {
+                                        aiLoading = true
+                                        aiError = null
+                                        aiJustificativa = null
+                                        try {
+                                            val res = GeminiClassifier.classifyElement(descricao, contas)
+                                            withContext(Dispatchers.Main) {
+                                                if (res != null) {
+                                                    if (res.error != null) {
+                                                        aiError = res.error
+                                                    } else {
+                                                        if (res.matchedConta != null) {
+                                                            selectedConta = res.matchedConta
+                                                            searchAccountQuery = "${res.matchedConta.codigo} - ${res.matchedConta.titulo}"
+                                                            aiJustificativa = res.justificativa
+                                                        } else {
+                                                            aiError = "A IA identificou o código '${res.codigo}', mas este código não foi encontrado no Plano de Contas local."
+                                                        }
+                                                    }
+                                                } else {
+                                                    aiError = "Nenhuma resposta do assistente de IA."
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            withContext(Dispatchers.Main) {
+                                                aiError = "Erro ao conectar com a IA: ${e.localizedMessage}"
+                                            }
+                                        } finally {
+                                            withContext(Dispatchers.Main) {
+                                                aiLoading = false
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    aiError = "Por favor, digite a descrição do elemento para que a IA possa classificar."
+                                }
+                            },
+                            enabled = !aiLoading && descricao.isNotBlank(),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.testTag("ai_classify_button")
+                        ) {
+                            if (aiLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Analisando...", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            } else {
+                                Text("Classificar com IA ✨", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = descricao,
                     onValueChange = { descricao = it },
@@ -153,8 +260,37 @@ fun AddElementoScreen(
                         focusedBorderColor = MaterialTheme.colorScheme.secondary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().testTag("elemento_descricao_input")
                 )
+
+                if (aiEnabled && (aiJustificativa != null || aiError != null)) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (aiError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                        ),
+                        shape = RoundedCornerShape(AppRadius.sm),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = if (aiError != null) "Aviso de IA" else "Classificação Sugerida por IA",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp,
+                                    color = if (aiError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = aiJustificativa ?: aiError ?: "",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
  
             // Section 2: Toggle de calculo
