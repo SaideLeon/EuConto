@@ -102,9 +102,7 @@ object GeminiClassifier {
 
             // Add generation config for JSON response format
             val generationConfig = JSONObject()
-            val responseFormat = JSONObject()
-            responseFormat.put("type", "application/json")
-            generationConfig.put("responseFormat", responseFormat)
+            generationConfig.put("responseMimeType", "application/json")
             root.put("generationConfig", generationConfig)
 
             val mediaType = "application/json; charset=utf-8".toMediaType()
