@@ -16,7 +16,33 @@ val Slate200 = Color(0xFFE2E8F0)
 val Slate100 = Color(0xFFF1F5F9)
 val Slate50  = Color(0xFFF8FAFC)
 
-// ===== BRAND =====
+// === Fundo / Superfícies (Elegant Dark) ===
+val EspressoBlack   = Color(0xFF1C1B1F)  // Fundo principal (background)
+val CocoaDark       = Color(0xFF2B2930)  // Cards / containers
+val LatteSlate      = Color(0xFF353439)  // Superfícies elevadas (stats, filtros, inputs preenchidos)
+
+// === Cores de Destaque (Accent) ===
+val AmberBronze     = Color(0xFFD0BCFF)  // Cor primária / accent (roxo claro M3)
+val CreamBronze     = Color(0xFFCCC2DC)  // Accent secundário
+val TerracottaPastel = Color(0xFFEFB8C8) // Accent terciário
+
+// === Tons Neutros Suaves ===
+val SoftClay        = Color(0xFFE6E1E5)  // Texto principal (alto contraste)
+val WarmGrey        = Color(0xFF938F99)  // Texto secundário / muted
+val ClayDivider      = Color(0xFF49454F)  // Divisores e bordas subtis
+
+// === Cores de Estado (Pills / Badges) ===
+val StatPending      = Color(0xFF49454F)  // Não iniciado
+val StatProgress     = Color(0xFF381E72)  // Em progresso (roxo profundo)
+val StatCompleted    = Color(0xFF8C1D18)  // Concluído mas não enviado (vermelho/terracota — crítico!)
+val StatDelivered    = Color(0xFF211F26)  // Entregue (carvão)
+
+// === Cores Financeiras ===
+val MoneyGreen       = Color(0xFFD0BCFF)  // Totalmente pago
+val MoneyOrange      = Color(0xFFE8DEF8)  // Pagamento parcial
+val MoneyRed         = Color(0xFFF2B8B5)  // Por pagar / dívida
+
+// ===== BRAND (Capulana Financeira style) =====
 val IndigoCapulana = Color(0xFF1E2768)      // Azul-índigo profundo — base institucional moçambicana
 val EsmeraldaMetical = Color(0xFF0F7A5C)    // Verde-esmeralda terroso — activo / positivo
 val EsmeraldaGlow = Color(0xFF34D399)       // Verde claro vibrante para glows e gradientes
@@ -33,16 +59,16 @@ val BrandRose = Color(0xFFBE123C)         // Rosa — passivo / erro
 val BrandRoseLight = Color(0xFFFB7185)
 
 // ===== SEMANTIC SURFACES (Light) =====
-val SurfaceCanvasLight = Color(0xFFF6F7FB)   // fundo geral (não branco puro)
-val SurfaceCardLight = Color(0xFFFFFFFF)
-val SurfaceElevatedLight = Color(0xFFFFFFFF)
-val SurfaceSunkenLight = Color(0xFFEEF1F6)   // inputs, áreas "encaixadas"
+val SurfaceCanvasLight = Color(0xFFFAF6F4)   // Fundo creme claro da Capulana Light Scheme
+val SurfaceCardLight = Color(0xFFF0E6E1)
+val SurfaceElevatedLight = Color(0xFFF0E6E1)
+val SurfaceSunkenLight = Color(0xFFE8DAD3)   // Inputs, áreas "encaixadas"
 
 // ===== SEMANTIC SURFACES (Dark) =====
-val SurfaceCanvasDark = Slate950
-val SurfaceCardDark = Slate850
-val SurfaceElevatedDark = Slate800
-val SurfaceSunkenDark = Color(0xFF0C1220)
+val SurfaceCanvasDark = EspressoBlack
+val SurfaceCardDark = CocoaDark
+val SurfaceElevatedDark = LatteSlate
+val SurfaceSunkenDark = LatteSlate
 
 // ===== STATUS =====
 val StatusGoodBg = Color(0xFFECFDF5)
@@ -58,7 +84,7 @@ val StatusWarnBgDark = Color(0x1AF59E0B)
 val StatusBadBgDark = Color(0x1AF43F5E)
 
 // ===== ALIASES (Compatibility) =====
-val ModernPrimary = Slate900
+val ModernPrimary = EspressoBlack
 val ModernSecondary = BrandTeal
 val ModernTertiary = BrandOcean
 

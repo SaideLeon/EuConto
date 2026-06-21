@@ -3,6 +3,9 @@ package com.example.ui.screens
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +47,7 @@ fun EmpresaDetailScreen(
     val elementos by viewModel.elementos.collectAsState()
     val resumo by viewModel.resumoPatrimonial.collectAsState()
     val contasMap by viewModel.contasMap.collectAsState()
+    val isDarkMode by viewModel.isDarkMode.collectAsState()
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -76,6 +81,33 @@ fun EmpresaDetailScreen(
                     }
                 },
                 actions = {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(end = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { viewModel.toggleTheme() }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .testTag("detail_theme_toggle_button"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Default.NightsStay else Icons.Default.WbSunny,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = if (isDarkMode) "Escuro" else "Claro",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+
                     IconButton(onClick = { showDeleteConfirm = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -103,355 +135,432 @@ fun EmpresaDetailScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    // Resumo Patrimonial Card (Fully Polished Hero Treatment)
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                            .softCardShadow(radius = AppRadius.xl, elevation = 10.dp, color = IndigoCapulana),
-                        shape = RoundedCornerShape(AppRadius.xl),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                text = "RESUMO PATRIMONIAL",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.height(18.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text("ACTIVO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    ValorMonetarioText(
-                                        valor = resumo?.totalActivo ?: 0.0,
-                                        style = ContaMonetariaTextStyle.Subheader,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
-                                    Text("PASSIVO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    ValorMonetarioText(
-                                        valor = resumo?.totalPassivo ?: 0.0,
-                                        style = ContaMonetariaTextStyle.Subheader,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                }
-                                VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                                Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1.5f)) {
-                                    Text("C. PRÓPRIO", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    ValorMonetarioText(
-                                        valor = resumo?.capitalProprio ?: 0.0,
-                                        style = ContaMonetariaTextStyle.Subheader,
-                                        color = EsmeraldaMetical
-                                    )
-                                }
-                            }
-
-                            resumo?.let { r ->
-                                Spacer(modifier = Modifier.height(18.dp))
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    item {
+                        // Resumo Patrimonial Card (Fully Polished Hero Treatment conforming to Section 4.2 Stat Cards)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                                .softCardShadow(radius = AppRadius.lg, elevation = 6.dp),
+                            shape = RoundedCornerShape(AppRadius.lg),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            border = BorderStroke(1.dp, ClayDivider)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "RESUMO PATRIMONIAL",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 1.2.sp
+                                )
                                 Spacer(modifier = Modifier.height(14.dp))
+
+                                val statScrollState = rememberScrollState()
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(statScrollState),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    // Visual Balance Indicator bar - Segmented stacked bar (Ativo / Capital / Passivo)
-                                    val totAct = r.totalActivo
-                                    val cpValue = if (r.capitalProprio > 0.0) r.capitalProprio else 0.0
-                                    val totPas = r.totalPassivo
-                                    val sumAll = totAct + cpValue + totPas
-
-                                    val wAct = if (sumAll > 0) (totAct / sumAll).toFloat().coerceAtLeast(0.08f) else 0.34f
-                                    val wCp = if (sumAll > 0) (cpValue / sumAll).toFloat().coerceAtLeast(0.08f) else 0.33f
-                                    val wPas = if (sumAll > 0) (totPas / sumAll).toFloat().coerceAtLeast(0.12f) else 0.33f
-
-                                    Column(modifier = Modifier.weight(1.5f)) {
-                                        Text(
-                                            text = "Equilíbrio (Activo / C. Próprio / Passivo)",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                        )
-                                        Spacer(modifier = Modifier.height(6.dp))
-                                        
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(10.dp)
-                                                .clip(RoundedCornerShape(5.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        ) {
+                                    // Activo Stat Card
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = LatteSlate),
+                                        shape = RoundedCornerShape(AppRadius.md),
+                                        border = BorderStroke(1.dp, ClayDivider.copy(alpha = 0.5f)),
+                                        modifier = Modifier.widthIn(min = 125.dp)
+                                    ) {
+                                        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                                             Box(
                                                 modifier = Modifier
+                                                    .width(4.dp)
                                                     .fillMaxHeight()
-                                                    .weight(wAct)
                                                     .background(EsmeraldaMetical)
                                             )
+                                            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp)) {
+                                                Text(
+                                                    text = "ACTIVO",
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = WarmGrey,
+                                                    letterSpacing = 1.sp
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                ValorMonetarioText(
+                                                    valor = resumo?.totalActivo ?: 0.0,
+                                                    style = ContaMonetariaTextStyle.Subheader,
+                                                    color = EsmeraldaGlow
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Passivo Stat Card
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = LatteSlate),
+                                        shape = RoundedCornerShape(AppRadius.md),
+                                        border = BorderStroke(1.dp, ClayDivider.copy(alpha = 0.5f)),
+                                        modifier = Modifier.widthIn(min = 125.dp)
+                                    ) {
+                                        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                                             Box(
                                                 modifier = Modifier
+                                                    .width(4.dp)
                                                     .fillMaxHeight()
-                                                    .weight(wCp)
-                                                    .background(AmbarSelo)
-                                            )
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxHeight()
-                                                    .weight(wPas)
                                                     .background(BrandRose)
                                             )
-                                        }
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text("Act: ${(wAct * 100).toInt()}%", fontSize = 9.sp, color = EsmeraldaMetical, fontWeight = FontWeight.Bold)
-                                            Text("C.P.: ${(wCp * 100).toInt()}%", fontSize = 9.sp, color = AmbarSelo, fontWeight = FontWeight.Bold)
-                                            Text("Pas: ${(wPas * 100).toInt()}%", fontSize = 9.sp, color = BrandRose, fontWeight = FontWeight.Bold)
+                                            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp)) {
+                                                Text(
+                                                    text = "PASSIVO",
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = WarmGrey,
+                                                    letterSpacing = 1.sp
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                ValorMonetarioText(
+                                                    valor = resumo?.totalPassivo ?: 0.0,
+                                                    style = ContaMonetariaTextStyle.Subheader,
+                                                    color = BrandRoseLight
+                                                )
+                                            }
                                         }
                                     }
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                                        SituacaoPatrimonialBadge(
-                                            situacao = r.situacaoPatrimonial,
-                                            colorName = r.situacaoColor
-                                        )
+
+                                    // Capital Próprio Stat Card
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = LatteSlate),
+                                        shape = RoundedCornerShape(AppRadius.md),
+                                        border = BorderStroke(1.dp, ClayDivider.copy(alpha = 0.5f)),
+                                        modifier = Modifier.widthIn(min = 125.dp)
+                                    ) {
+                                        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(4.dp)
+                                                    .fillMaxHeight()
+                                                    .background(AmbarSelo)
+                                            )
+                                            Column(modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp)) {
+                                                Text(
+                                                    text = "C. PRÓPRIO",
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = WarmGrey,
+                                                    letterSpacing = 1.sp
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                ValorMonetarioText(
+                                                    valor = resumo?.capitalProprio ?: 0.0,
+                                                    style = ContaMonetariaTextStyle.Subheader,
+                                                    color = BrandAmberLight
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                resumo?.let { r ->
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    HorizontalDivider(color = ClayDivider.copy(alpha = 0.5f))
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        val totAct = r.totalActivo
+                                        val cpValue = if (r.capitalProprio > 0.0) r.capitalProprio else 0.0
+                                        val totPas = r.totalPassivo
+                                        val sumAll = totAct + cpValue + totPas
+
+                                        val wAct = if (sumAll > 0) (totAct / sumAll).toFloat().coerceAtLeast(0.08f) else 0.34f
+                                        val wCp = if (sumAll > 0) (cpValue / sumAll).toFloat().coerceAtLeast(0.08f) else 0.33f
+                                        val wPas = if (sumAll > 0) (totPas / sumAll).toFloat().coerceAtLeast(0.12f) else 0.33f
+
+                                        Column(modifier = Modifier.weight(1.5f)) {
+                                            Text(
+                                                text = "Equilíbrio Patrimonial (Activo / C. Próprio / Passivo)",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = WarmGrey
+                                            )
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(8.dp)
+                                                    .clip(RoundedCornerShape(4.dp))
+                                                    .background(LatteSlate)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .weight(wAct)
+                                                        .background(EsmeraldaMetical)
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .weight(wCp)
+                                                        .background(AmbarSelo)
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .weight(wPas)
+                                                        .background(BrandRose)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Act: ${(wAct * 100).toInt()}%", fontSize = 9.sp, color = EsmeraldaGlow, fontWeight = FontWeight.Bold)
+                                                Text("C.P.: ${(wCp * 100).toInt()}%", fontSize = 9.sp, color = BrandAmberLight, fontWeight = FontWeight.Bold)
+                                                Text("Pas: ${(wPas * 100).toInt()}%", fontSize = 9.sp, color = BrandRoseLight, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                                            SituacaoPatrimonialBadge(
+                                                situacao = r.situacaoPatrimonial,
+                                                colorName = r.situacaoColor
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    // Action buttons segment (Redesigned as cards with nice badges and shadows)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            onClick = onNavigateToAddElemento,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(AppRadius.md),
+                    item {
+                        // Action buttons segment (Redesigned as cards with nice badges and shadows)
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp, color = BrandTeal)
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            Surface(
+                                onClick = onNavigateToAddElemento,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(AppRadius.md),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .softCardShadow(radius = AppRadius.md, elevation = 4.dp, color = BrandTeal)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(34.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
+                                Column(
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.White)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.White)
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("Add Elemento", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("Add Elemento", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
                             }
-                        }
 
-                        Surface(
-                            onClick = onNavigateToInventario,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(AppRadius.md),
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            Surface(
+                                onClick = onNavigateToInventario,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(AppRadius.md),
+                                modifier = Modifier
+                                    .weight(1.1f)
+                                    .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(34.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
+                                Column(
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Icon(Icons.Default.Assessment, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Default.Assessment, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.secondary)
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("Gerar Inventário", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSecondaryContainer, textAlign = TextAlign.Center)
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("Gerar Inventário", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSecondaryContainer, textAlign = TextAlign.Center)
                             }
-                        }
 
-                        Surface(
-                            onClick = onNavigateToBalanco,
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                            shape = RoundedCornerShape(AppRadius.md),
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            Surface(
+                                onClick = onNavigateToBalanco,
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = RoundedCornerShape(AppRadius.md),
+                                modifier = Modifier
+                                    .weight(1.1f)
+                                    .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(34.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
+                                Column(
+                                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Icon(Icons.Default.PieChart, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.tertiary)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(34.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Default.PieChart, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.tertiary)
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("Gerar Balanço", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onTertiaryContainer, textAlign = TextAlign.Center)
                                 }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text("Gerar Balanço", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onTertiaryContainer, textAlign = TextAlign.Center)
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    item {
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    // Title section
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Elementos Patrimoniais (${elementos.size})",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            letterSpacing = (-0.3).sp
-                        )
+                        // Title section
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Elementos Patrimoniais (${elementos.size})",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                letterSpacing = (-0.3).sp
+                            )
+                        }
                     }
 
                     if (elementos.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.List,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.List,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    Text(
+                                        text = "Nenhum Elemento Patrimonial",
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 15.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "Registe todos os bens, caixas, dívidas, empréstimos e capitais da empresa para consolidar o relatório.",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        textAlign = TextAlign.Center
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(14.dp))
-                                Text(
-                                    text = "Nenhum Elemento Patrimonial",
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 15.sp
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "Registe todos os bens, caixas, dívidas, empréstimos e capitais da empresa para consolidar o relatório.",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    textAlign = TextAlign.Center
-                                )
                             }
                         }
                     } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            items(elementos, key = { it.id }) { item ->
-                                val conta = contasMap[item.contaCodigo]
-                                val isPassivo = conta?.natureza == "PASSIVO"
+                        items(elementos, key = { it.id }) { item ->
+                            val conta = contasMap[item.contaCodigo]
+                            val isPassivo = conta?.natureza == "PASSIVO"
 
-                                Card(
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                    shape = RoundedCornerShape(AppRadius.md),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .softCardShadow(radius = AppRadius.md, elevation = 2.dp)
-                                ) {
-                                    Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-                                        // Left Indicator Accent Bar - high craftsmanship visual scanability
-                                        Box(
-                                            modifier = Modifier
-                                                .width(6.dp)
-                                                .fillMaxHeight()
-                                                .background(
-                                                    if (isPassivo) MaterialTheme.colorScheme.error 
-                                                    else EsmeraldaMetical
-                                                )
-                                        )
+                            Card(
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.dp, ClayDivider),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 5.dp)
+                                    .softCardShadow(radius = 16.dp, elevation = 2.dp)
+                            ) {
+                                Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                                    // Left Indicator Accent Bar - high craftsmanship visual scanability
+                                    Box(
+                                        modifier = Modifier
+                                            .width(6.dp)
+                                            .fillMaxHeight()
+                                            .background(
+                                                if (isPassivo) MaterialTheme.colorScheme.error 
+                                                else EsmeraldaMetical
+                                            )
+                                    )
 
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(14.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(14.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = item.descricao,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            ContaPGCChip(
+                                                codigo = item.contaCodigo,
+                                                titulo = conta?.titulo ?: "Classificação PGC"
+                                            )
+                                            if (item.quantidade > 1.0 && item.valorUnitario != null) {
+                                                Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
-                                                    text = item.descricao,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 15.sp,
-                                                    color = MaterialTheme.colorScheme.onSurface
+                                                    text = "${String.format("%.1f", item.quantidade)} × ${String.format("%.2f MZN", item.valorUnitario)}",
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                                 )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                ContaPGCChip(
-                                                    codigo = item.contaCodigo,
-                                                    titulo = conta?.titulo ?: "Classificação PGC"
-                                                )
-                                                if (item.quantidade > 1.0 && item.valorUnitario != null) {
-                                                    Spacer(modifier = Modifier.height(4.dp))
-                                                    Text(
-                                                        text = "${String.format("%.1f", item.quantidade)} × ${String.format("%.2f MZN", item.valorUnitario)}",
-                                                        fontSize = 11.sp,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                                    )
-                                                }
                                             }
+                                        }
 
-                                            Column(horizontalAlignment = Alignment.End) {
-                                                ValorMonetarioText(
-                                                    valor = item.valor,
-                                                    style = ContaMonetariaTextStyle.Bold,
-                                                    color = if (isPassivo) MaterialTheme.colorScheme.error else EsmeraldaMetical
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            ValorMonetarioText(
+                                                valor = item.valor,
+                                                style = ContaMonetariaTextStyle.Bold,
+                                                color = if (isPassivo) MaterialTheme.colorScheme.error else EsmeraldaMetical
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            IconButton(
+                                                onClick = { viewModel.deleteElemento(item) },
+                                                modifier = Modifier.size(48.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.DeleteOutline,
+                                                    contentDescription = "Remover",
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                                    modifier = Modifier.size(20.dp)
                                                 )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                IconButton(
-                                                    onClick = { viewModel.deleteElemento(item) },
-                                                    modifier = Modifier.size(48.dp)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.DeleteOutline,
-                                                        contentDescription = "Remover",
-                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-                                                }
                                             }
                                         }
                                     }

@@ -181,15 +181,17 @@ fun BalancoScreen(
             balancoResult?.let { b ->
                 item {
                     val statusText = if (b.balancoFecha) "Balanço Fechado Correctamente" else "Diferença Pendente no Fecho"
-                    val bColor = if (b.balancoFecha) Color(0xFF047857) else Color(0xFFBE123C)
-                    val bgCol = if (b.balancoFecha) Color(0xFFF0FDF4) else Color(0xFFFFF1F2)
+                    val bColor = if (b.balancoFecha) EsmeraldaGlow else BrandRoseLight
+                    val bgCol = LatteSlate
+                    val indicatorColor = if (b.balancoFecha) EsmeraldaMetical else BrandRose
 
                     Card(
                         colors = CardDefaults.cardColors(containerColor = bgCol),
                         shape = RoundedCornerShape(AppRadius.md),
+                        border = BorderStroke(1.dp, indicatorColor.copy(alpha = 0.5f)),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .softCardShadow(radius = AppRadius.md, elevation = 2.dp, color = bColor)
+                            .softCardShadow(radius = AppRadius.md, elevation = 2.dp)
                     ) {
                         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                             // Left accent anchor
@@ -197,7 +199,7 @@ fun BalancoScreen(
                                 modifier = Modifier
                                     .width(6.dp)
                                     .fillMaxHeight()
-                                    .background(bColor)
+                                    .background(indicatorColor)
                             )
 
                             Column(modifier = Modifier.padding(16.dp)) {
@@ -205,7 +207,7 @@ fun BalancoScreen(
                                     Icon(
                                         imageVector = if (b.balancoFecha) Icons.Default.Done else Icons.Default.Warning,
                                         contentDescription = null,
-                                        tint = bColor,
+                                        tint = indicatorColor,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
@@ -213,13 +215,13 @@ fun BalancoScreen(
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Total Activos:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF475569))
-                                    ValorMonetarioText(valor = b.totalActivos, style = ContaMonetariaTextStyle.Bold, color = Color(0xFF1E293B))
+                                    Text("Total Activos:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SoftClay)
+                                    ValorMonetarioText(valor = b.totalActivos, style = ContaMonetariaTextStyle.Bold, color = if (b.balancoFecha) EsmeraldaGlow else SoftClay)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Total CP + Passivos:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF475569))
-                                    ValorMonetarioText(valor = b.totalCpEPassivo, style = ContaMonetariaTextStyle.Bold, color = Color(0xFF1E293B))
+                                    Text("Total CP + Passivos:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SoftClay)
+                                    ValorMonetarioText(valor = b.totalCpEPassivo, style = ContaMonetariaTextStyle.Bold, color = SoftClay)
                                 }
                             }
                         }
@@ -291,21 +293,21 @@ fun BalancoScreen(
                 item {
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFA7F3D0)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4))
+                        border = BorderStroke(1.dp, EsmeraldaGlow.copy(alpha = 0.5f)),
+                        colors = CardDefaults.cardColors(containerColor = LatteSlate)
                     ) {
                         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF047857)),
+                                    .background(EsmeraldaMetical),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Done, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Done, contentDescription = null, tint = EspressoBlack, modifier = Modifier.size(14.dp))
                             }
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text(operationMsg, fontSize = 13.sp, color = Color(0xFF064E3B), fontWeight = FontWeight.Bold)
+                            Text(operationMsg, fontSize = 13.sp, color = EsmeraldaGlow, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

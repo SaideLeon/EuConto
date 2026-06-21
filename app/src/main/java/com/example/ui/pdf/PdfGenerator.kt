@@ -671,7 +671,7 @@ object PdfGenerator {
         canvas.drawText(dateText, 40f, y, paintBold)
         y += 25f
 
-        canvas.drawText("Gerado automaticamente via Eu Conto · Moçambique", 40f, y, paintText)
+        canvas.drawText("Gerado automaticamente via SaFin · Moçambique", 40f, y, paintText)
 
         pdfDocument.finishPage(page)
 

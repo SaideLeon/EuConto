@@ -14,8 +14,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -290,10 +292,10 @@ fun AddElementoScreen(
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = if (aiError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
-                            else Color(0xFFFFFBEB) // Ivory cream ledger sheet tone
+                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
                         ),
                         border = if (aiError != null) BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-                                 else BorderStroke(1.dp, AmbarSelo.copy(alpha = 0.4f)),
+                                 else BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
                         shape = RoundedCornerShape(AppRadius.sm),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -307,7 +309,7 @@ fun AddElementoScreen(
                                     text = if (aiError != null) "Aviso de IA" else "Classificação Sugerida por IA",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
-                                    color = if (aiError != null) MaterialTheme.colorScheme.error else IndigoCapulana
+                                    color = if (aiError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                                 )
                                 Text(
                                     text = "Configurar Chave",
@@ -334,6 +336,7 @@ fun AddElementoScreen(
                 }
 
                 if (showApiKeyDialog) {
+                    val uriHandler = LocalUriHandler.current
                     AlertDialog(
                         onDismissRequest = { showApiKeyDialog = false },
                         title = { Text("Configurar Chave de API Gemini", fontWeight = FontWeight.Bold) },
@@ -344,6 +347,33 @@ fun AddElementoScreen(
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    TextButton(
+                                        onClick = { uriHandler.openUri("https://aistudio.google.com/api-keys") },
+                                        contentPadding = PaddingValues(0.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.OpenInNew,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(14.dp)
+                                            )
+                                            Text(
+                                                text = "Obter chave em Google AI Studio",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+
                                 OutlinedTextField(
                                     value = userApiKeyInput,
                                     onValueChange = { userApiKeyInput = it },
@@ -548,8 +578,8 @@ fun AddElementoScreen(
                 item {
                     val s = selectedConta!!
                     Card(
-                        border = BorderStroke(1.5.dp, EsmeraldaMetical.copy(alpha = 0.5f)), // Genuine Metical outline
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                        border = BorderStroke(1.5.dp, EsmeraldaGlow.copy(alpha = 0.5f)),
+                        colors = CardDefaults.cardColors(containerColor = LatteSlate),
                         shape = RoundedCornerShape(AppRadius.md),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -559,10 +589,10 @@ fun AddElementoScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
-                                    Text("CONTA SELECCIONADA", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF047857))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("CONTA SELECCIONADA", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = EsmeraldaGlow)
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text("${s.codigo} · ${s.titulo}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF064E3B))
+                                    Text("${s.codigo} · ${s.titulo}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = SoftClay)
                                 }
                                 TextButton(
                                     onClick = {
@@ -575,28 +605,28 @@ fun AddElementoScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(12.dp))
-                            HorizontalDivider(color = Color(0xFFD1FAE5))
+                            HorizontalDivider(color = ClayDivider.copy(alpha = 0.5f))
                             Spacer(modifier = Modifier.height(12.dp))
 
                             // Automatic Classification badges readouts derived from metadata PGC properties (R-01)
-                            Text("Classificação de Livros:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF064E3B))
+                            Text("Classificação de Livros:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = SoftClay)
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(Color.White)
+                                        .background(CocoaDark)
                                         .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
-                                    Text("NATUREZA: ${s.natureza}", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF047857))
+                                    Text("NATUREZA: ${s.natureza}", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = EsmeraldaGlow)
                                 }
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(Color.White)
+                                        .background(CocoaDark)
                                         .padding(horizontal = 10.dp, vertical = 6.dp)
                                 ) {
-                                    Text("SUB-LIVRO: ${s.typeCorrencia ?: "Capital / Gasto"}", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF047857))
+                                    Text("SUB-LIVRO: ${s.typeCorrencia ?: "Capital / Gasto"}", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = EsmeraldaGlow)
                                 }
                             }
                         }

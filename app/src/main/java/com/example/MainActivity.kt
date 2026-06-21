@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.ui.theme.MyApplicationTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -24,9 +26,11 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContent {
-      MyApplicationTheme {
+      val viewModel: AccountingViewModel = viewModel()
+      val isDarkMode by viewModel.isDarkMode.collectAsState()
+
+      MyApplicationTheme(darkTheme = isDarkMode) {
         val navController = rememberNavController()
-        val viewModel: AccountingViewModel = viewModel()
 
         Scaffold(
           modifier = Modifier.fillMaxSize()
@@ -41,7 +45,15 @@ class MainActivity : ComponentActivity() {
                 viewModel = viewModel,
                 onNavigateToEmpresa = { id ->
                   navController.navigate("empresa_detail")
+                },
+                onNavigateToCompreender = {
+                  navController.navigate("compreender")
                 }
+              )
+            }
+            composable("compreender") {
+              CompreenderScreen(
+                onNavigateBack = { navController.popBackStack() }
               )
             }
             composable("empresa_detail") {

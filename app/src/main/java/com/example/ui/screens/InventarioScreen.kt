@@ -295,21 +295,21 @@ fun InventarioScreen(
                 item {
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFA7F3D0)),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4))
+                        border = BorderStroke(1.dp, EsmeraldaGlow.copy(alpha = 0.5f)),
+                        colors = CardDefaults.cardColors(containerColor = LatteSlate)
                     ) {
                         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF047857)),
+                                    .background(EsmeraldaMetical),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Done, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Done, contentDescription = null, tint = EspressoBlack, modifier = Modifier.size(14.dp))
                             }
                             Spacer(modifier = Modifier.width(10.dp))
-                            Text(operationMsg, fontSize = 13.sp, color = Color(0xFF064E3B), fontWeight = FontWeight.Bold)
+                            Text(operationMsg, fontSize = 13.sp, color = EsmeraldaGlow, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

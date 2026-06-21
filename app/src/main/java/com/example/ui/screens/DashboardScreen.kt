@@ -10,13 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Pin
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Empresa
+import com.example.ui.components.RechartsBarChart
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
 import java.time.LocalDate
@@ -37,10 +35,12 @@ import java.time.LocalDate
 fun DashboardScreen(
     viewModel: AccountingViewModel,
     onNavigateToEmpresa: (Long) -> Unit,
+    onNavigateToCompreender: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val empresas by viewModel.empresas.collectAsState(initial = emptyList())
     val empresasResumo by viewModel.empresasResumo.collectAsState(initial = emptyMap())
+    val monthlyProgression by viewModel.monthlyProgression.collectAsState(initial = emptyList())
     var showCreateDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -64,7 +64,7 @@ fun DashboardScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Eu Conto PGC-NIRF",
+                            text = "SaFin",
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp,
                             letterSpacing = (-0.5).sp,
@@ -79,6 +79,34 @@ fun DashboardScreen(
                     val context = androidx.compose.ui.platform.LocalContext.current
                     var showKeyConfigDialog by remember { mutableStateOf(false) }
                     var apiKeyValue by remember { mutableStateOf("") }
+                    val isDarkMode by viewModel.isDarkMode.collectAsState()
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .padding(end = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { viewModel.toggleTheme() }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .testTag("dashboard_theme_toggle_button"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isDarkMode) Icons.Default.NightsStay else Icons.Default.WbSunny,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = if (isDarkMode) "Escuro" else "Claro",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
 
                     IconButton(
                         onClick = {
@@ -95,10 +123,11 @@ fun DashboardScreen(
                     }
 
                     if (showKeyConfigDialog) {
+                        val uriHandler = LocalUriHandler.current
                         AlertDialog(
                             onDismissRequest = { showKeyConfigDialog = false },
                             shape = RoundedCornerShape(16.dp),
-                            title = { Text("Configurar Chave API Gemini", fontWeight = FontWeight.Bold, color = IndigoCapulana) },
+                            title = { Text("Configurar Chave API Gemini", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
                             text = {
                                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                     Text(
@@ -106,6 +135,33 @@ fun DashboardScreen(
                                         fontSize = 13.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                    
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        TextButton(
+                                            onClick = { uriHandler.openUri("https://aistudio.google.com/api-keys") },
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.OpenInNew,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(14.dp)
+                                                )
+                                                Text(
+                                                    text = "Obter chave em Google AI Studio",
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+
                                     OutlinedTextField(
                                         value = apiKeyValue,
                                         onValueChange = { apiKeyValue = it },
@@ -221,6 +277,18 @@ fun DashboardScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Configurar Nova Empresa", style = MaterialTheme.typography.labelLarge)
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = onNavigateToCompreender,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(AppRadius.sm),
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Ir para Área Compreender", style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             } else {
                 LazyColumn(
@@ -242,25 +310,113 @@ fun DashboardScreen(
                                     .fillMaxWidth()
                                     .background(brush = AppGradients.HeroGradient)
                                     .padding(22.dp)
-                            ) {
+                             ) {
                                 Column {
                                     Text(
                                         text = "Gestão de Ativos & Balanços",
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 19.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        color = Color.White,
                                         letterSpacing = (-0.5).sp
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "Regule e categorize ativos, passivos e capital próprio em conformidade técnica com o PGC-NIRF de Moçambique.",
                                         fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                                        color = Color.White.copy(alpha = 0.85f),
                                         lineHeight = 17.sp
                                     )
                                 }
                             }
                         }
+                    }
+
+                    item {
+                        Card(
+                            onClick = onNavigateToCompreender,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .softCardShadow(radius = AppRadius.md, elevation = 4.dp)
+                                .testTag("dashboard_compreender_card"),
+                            shape = RoundedCornerShape(AppRadius.md),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(EsmeraldaMetical.copy(alpha = 0.12f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.School,
+                                        contentDescription = null,
+                                        tint = EsmeraldaMetical,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "ÁREA COMPREENDER",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = BrandAmber
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(EsmeraldaMetical.copy(alpha = 0.15f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "NOVO",
+                                                color = EsmeraldaMetical,
+                                                fontSize = 8.sp,
+                                                fontWeight = FontWeight.ExtraBold
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Aprender RA3: Património & Inventário",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Estude conceitos do PGC-NIRF com lições oficiais, simuladores, razão esquemático e quizzes interativos.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    item {
+                        RechartsBarChart(
+                            data = monthlyProgression,
+                            currencySymbol = "MZN",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        )
                     }
 
                     item {
@@ -396,7 +552,7 @@ fun DashboardScreen(
                         Text(
                             text = "Registar Nova Empresa",
                             fontWeight = FontWeight.Bold,
-                            color = IndigoCapulana
+                            color = MaterialTheme.colorScheme.primary
                         )
                     },
                     text = {
