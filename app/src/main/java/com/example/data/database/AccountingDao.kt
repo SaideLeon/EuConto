@@ -39,6 +39,9 @@ interface AccountingDao {
     suspend fun getContasCount(): Int
 
     // ElementoPatrimonial (Asset / Liability Elements)
+    @Query("SELECT * FROM elemento_patrimonial")
+    fun getAllElementos(): Flow<List<ElementoPatrimonial>>
+
     @Query("SELECT * FROM elemento_patrimonial WHERE empresaId = :empresaId")
     fun getElementosByEmpresa(empresaId: Long): Flow<List<ElementoPatrimonial>>
 

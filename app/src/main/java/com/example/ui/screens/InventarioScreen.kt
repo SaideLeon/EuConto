@@ -374,23 +374,64 @@ fun InventarioScreen(
 
                         // Tree ledger classes
                         for (classe in classes) {
+                            val classBgColor = when (classe.classe) {
+                                1, 2 -> Color(0xFFECFDF5) // Light emerald
+                                3 -> Color(0xFFEEF2FF) // Light indigo
+                                4 -> Color(0xFFFFF7ED) // Light orange / warm terracotta
+                                5 -> Color(0xFFFFFBEB) // Light warm gold/amber
+                                else -> Color(0xFFF8FAFC) // Slate gray
+                            }
+                            val classBorderColor = when (classe.classe) {
+                                1, 2 -> EsmeraldaMetical
+                                3 -> IndigoCapulana
+                                4 -> TerracotaArquivo
+                                5 -> AmbarSelo
+                                else -> Slate400
+                            }
+                            val classTextColor = when (classe.classe) {
+                                1, 2 -> Color(0xFF065F46)
+                                3 -> Color(0xFF3730A3)
+                                4 -> Color(0xFF9A3412)
+                                5 -> Color(0xFF92400E)
+                                else -> Color(0xFF334155)
+                            }
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(classBgColor)
+                                    .padding(horizontal = 8.dp, vertical = 6.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = classe.tituloClasse.uppercase(Locale.getDefault()),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp,
-                                    color = Color(0xFF1E293B),
-                                    modifier = Modifier.weight(1f)
-                                )
-                                ValorMonetarioText(valor = classe.subtotal, style = ContaMonetariaTextStyle.Bold, color = Color(0xFF1E293B))
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(2.dp))
+                                            .background(classBorderColor)
+                                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = "CLASSE ${classe.classe}",
+                                            fontSize = 8.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color.White
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = classe.tituloClasse.uppercase(Locale.getDefault()),
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = classTextColor
+                                    )
+                                }
+                                ValorMonetarioText(valor = classe.subtotal, style = ContaMonetariaTextStyle.Bold, color = classTextColor)
                             }
-                            HorizontalDivider(color = Color(0xFFF1F5F9))
                             Spacer(modifier = Modifier.height(4.dp))
 
                             for (grupo in classe.contas) {

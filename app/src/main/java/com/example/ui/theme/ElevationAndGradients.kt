@@ -23,23 +23,30 @@ fun Modifier.softCardShadow(
 object AppGradients {
     val HeroGradient = Brush.linearGradient(
         colors = listOf(
-            Slate900,
-            Slate850,
-            BrandTeal.copy(alpha = 0.18f)
+            Slate950,
+            IndigoCapulana,
+            EsmeraldaMetical.copy(alpha = 0.35f)
+        )
+    )
+
+    val SeloGradient = Brush.linearGradient(
+        colors = listOf(
+            AmbarSelo,
+            AmbarSelo.copy(alpha = 0.6f)
         )
     )
 
     val PositiveGlow = Brush.linearGradient(
         colors = listOf(
-            BrandTeal,
-            BrandTealLight
+            EsmeraldaMetical,
+            EsmeraldaGlow
         )
     )
 
     val AmberGlow = Brush.linearGradient(
         colors = listOf(
-            BrandAmber,
-            BrandAmberLight
+            AmbarSelo,
+            Color(0xFFFBBF24)
         )
     )
 

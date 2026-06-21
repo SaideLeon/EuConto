@@ -55,13 +55,13 @@ object PdfGenerator {
         }
 
         val paintTitle = Paint().apply {
-            color = Color.rgb(21, 101, 192) // Financial Blue
+            color = Color.rgb(26, 35, 126) // Indigo Capulana (#1A237E)
             textSize = 15f
             typeface = Typeface.create(Typeface.DEFAULT_BOLD, Typeface.BOLD)
         }
 
         val paintHeader = Paint().apply {
-            color = Color.rgb(46, 125, 50) // Green details
+            color = Color.rgb(16, 124, 65) // Esmeralda Metical (#107C41)
             textSize = 11f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
@@ -160,7 +160,7 @@ object PdfGenerator {
 
         fun drawHeaderOnNewPage() {
             y = 50f
-            canvas.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
+            canvas.drawText("EU CONTO · PGC-NIRF", 40f, y, paintHeader)
             y += 15f
             canvas.drawText("INVENTÁRIO CLASSIFICADO - Continuação (${empresa.nome.uppercase(Locale.getDefault())})", 40f, y, paintBold)
             canvas.drawText("Pág. ${pageNumber}", 520f, y, paintText)
@@ -217,7 +217,7 @@ object PdfGenerator {
 
         // --- Início das impressões na página 1 ---
         // Document Headers
-        canvas.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
+        canvas.drawText("EU CONTO · PGC-NIRF", 40f, y, paintHeader)
         y += 22f
         canvas.drawText("INVENTÁRIO PATRIMONIAL EXERCIDO", 40f, y, paintTitle)
         y += 18f
@@ -405,7 +405,7 @@ object PdfGenerator {
         val canvasC = conclusionPage.canvas
 
         y = 50f
-        canvasC.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeader)
+        canvasC.drawText("EU CONTO · PGC-NIRF", 40f, y, paintHeader)
         y += 25f
         canvasC.drawText("COMENTÁRIO PATRIMONIAL & SÍNTESE", 40f, y, paintTitle)
         y += 15f
@@ -519,7 +519,7 @@ object PdfGenerator {
         }
 
         val paintHeaderLabel = Paint().apply {
-            color = Color.rgb(46, 125, 50)
+            color = Color.rgb(16, 124, 65) // Esmeralda Metical (#107C41)
             textSize = 10f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
@@ -543,7 +543,7 @@ object PdfGenerator {
         var y = 50f
 
         // Document header
-        canvas.drawText("CONTAFÁCIL · PGC-NIRF", 40f, y, paintHeaderLabel)
+        canvas.drawText("EU CONTO · PGC-NIRF", 40f, y, paintHeaderLabel)
         y += 22f
         canvas.drawText("BALANÇO PATRIMONIAL EXERCÍCIO - ${balanco.tipo}", 40f, y, paintTitle)
         y += 18f

@@ -40,6 +40,7 @@ fun DashboardScreen(
     modifier: Modifier = Modifier
 ) {
     val empresas by viewModel.empresas.collectAsState(initial = emptyList())
+    val empresasResumo by viewModel.empresasResumo.collectAsState(initial = emptyMap())
     var showCreateDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -96,7 +97,8 @@ fun DashboardScreen(
                     if (showKeyConfigDialog) {
                         AlertDialog(
                             onDismissRequest = { showKeyConfigDialog = false },
-                            title = { Text("Configurar Chave de API Gemini", fontWeight = FontWeight.Bold) },
+                            shape = RoundedCornerShape(16.dp),
+                            title = { Text("Configurar Chave API Gemini", fontWeight = FontWeight.Bold, color = IndigoCapulana) },
                             text = {
                                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                     Text(
@@ -109,6 +111,11 @@ fun DashboardScreen(
                                         onValueChange = { apiKeyValue = it },
                                         placeholder = { Text("Cole sua chave AI_KEY aqui...") },
                                         singleLine = true,
+                                        shape = RoundedCornerShape(AppRadius.sm),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                        ),
                                         modifier = Modifier.fillMaxWidth().testTag("config_api_key_field")
                                     )
                                     Text(
@@ -127,14 +134,16 @@ fun DashboardScreen(
                                             com.example.data.gemini.GeminiClassifier.clearApiKey(context)
                                         }
                                         showKeyConfigDialog = false
-                                    }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = EsmeraldaMetical),
+                                    shape = RoundedCornerShape(AppRadius.sm)
                                 ) {
-                                    Text("Salvar")
+                                    Text("Guardar", fontWeight = FontWeight.Bold)
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showKeyConfigDialog = false }) {
-                                    Text("Cancelar")
+                                    Text("Cancelar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         )
@@ -173,7 +182,7 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             .size(110.dp)
-                            .softCardShadow(radius = 55.dp, elevation = 12.dp, color = BrandTeal)
+                            .softCardShadow(radius = 55.dp, elevation = 12.dp, color = TerracotaArquivo)
                             .background(
                                 brush = AppGradients.HeroGradient,
                                 shape = CircleShape
@@ -184,7 +193,7 @@ fun DashboardScreen(
                             imageVector = Icons.Default.Business,
                             contentDescription = null,
                             modifier = Modifier.size(52.dp),
-                            tint = BrandTealLight
+                            tint = BrandAmberLight
                         )
                     }
                     Spacer(modifier = Modifier.height(28.dp))
@@ -264,6 +273,7 @@ fun DashboardScreen(
                     }
 
                     items(empresas) { emp ->
+                        val resumo = empresasResumo[emp.id]
                         Card(
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -282,11 +292,27 @@ fun DashboardScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = emp.nome,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        val dotColor = when (resumo?.situacaoColor) {
+                                            "VERDE" -> StatusGoodFg
+                                            "AMARELO" -> StatusWarnFg
+                                            "VERMELHO" -> StatusBadFg
+                                            else -> Slate400
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .size(10.dp)
+                                                .clip(CircleShape)
+                                                .background(dotColor)
+                                        )
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = emp.nome,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                    
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(AppRadius.xs))
@@ -365,10 +391,12 @@ fun DashboardScreen(
 
                 AlertDialog(
                     onDismissRequest = { showCreateDialog = false },
+                    shape = RoundedCornerShape(16.dp),
                     title = {
                         Text(
                             text = "Registar Nova Empresa",
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = IndigoCapulana
                         )
                     },
                     text = {
@@ -379,6 +407,7 @@ fun DashboardScreen(
                                 label = { Text("Nome da Empresa") },
                                 placeholder = { Text("Ex: Viva Bem") },
                                 singleLine = true,
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
@@ -387,6 +416,7 @@ fun DashboardScreen(
                                 label = { Text("Actividade Comercial") },
                                 placeholder = { Text("Ex: Venda de Materiais de Construção") },
                                 singleLine = true,
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
@@ -395,6 +425,7 @@ fun DashboardScreen(
                                 label = { Text("Cidade / Província") },
                                 placeholder = { Text("Ex: Mocuba ou Maputo") },
                                 singleLine = true,
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
@@ -403,6 +434,7 @@ fun DashboardScreen(
                                 label = { Text("NUIT (Nº Identificação Tributária)") },
                                 placeholder = { Text("Ex: 400123456") },
                                 singleLine = true,
+                                shape = RoundedCornerShape(AppRadius.sm),
                                 modifier = Modifier.fillMaxWidth()
                             )
                             if (errorMessage.isNotEmpty()) {
@@ -432,14 +464,16 @@ fun DashboardScreen(
                                         onNavigateToEmpresa(id)
                                     }
                                 }
-                            }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = EsmeraldaMetical),
+                            shape = RoundedCornerShape(AppRadius.sm)
                         ) {
-                            Text("Criar Empresa")
+                            Text("Criar Empresa", fontWeight = FontWeight.Bold)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showCreateDialog = false }) {
-                            Text("Cancelar")
+                            Text("Cancelar", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 )

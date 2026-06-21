@@ -109,7 +109,7 @@ fun EmpresaDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 10.dp)
-                            .softCardShadow(radius = AppRadius.xl, elevation = 10.dp),
+                            .softCardShadow(radius = AppRadius.xl, elevation = 10.dp, color = IndigoCapulana),
                         shape = RoundedCornerShape(AppRadius.xl),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
@@ -151,7 +151,7 @@ fun EmpresaDetailScreen(
                                     ValorMonetarioText(
                                         valor = resumo?.capitalProprio ?: 0.0,
                                         style = ContaMonetariaTextStyle.Subheader,
-                                        color = Color(0xFF0D9488) // Modern Teal
+                                        color = EsmeraldaMetical
                                     )
                                 }
                             }
@@ -165,29 +165,60 @@ fun EmpresaDetailScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    // Visual Balance Indicator bar
+                                    // Visual Balance Indicator bar - Segmented stacked bar (Ativo / Capital / Passivo)
                                     val totAct = r.totalActivo
+                                    val cpValue = if (r.capitalProprio > 0.0) r.capitalProprio else 0.0
                                     val totPas = r.totalPassivo
-                                    val sum = totAct + totPas
-                                    val fraction = if (sum > 0) (totAct / sum).toFloat() else 0.5f
+                                    val sumAll = totAct + cpValue + totPas
+
+                                    val wAct = if (sumAll > 0) (totAct / sumAll).toFloat().coerceAtLeast(0.08f) else 0.34f
+                                    val wCp = if (sumAll > 0) (cpValue / sumAll).toFloat().coerceAtLeast(0.08f) else 0.33f
+                                    val wPas = if (sumAll > 0) (totPas / sumAll).toFloat().coerceAtLeast(0.12f) else 0.33f
 
                                     Column(modifier = Modifier.weight(1.5f)) {
                                         Text(
-                                            text = "Equilíbrio Activo vs Passivo",
+                                            text = "Equilíbrio (Activo / C. Próprio / Passivo)",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                         )
                                         Spacer(modifier = Modifier.height(6.dp))
-                                        LinearProgressIndicator(
-                                            progress = { fraction },
+                                        
+                                        Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(8.dp)
-                                                .clip(CircleShape),
-                                            color = MaterialTheme.colorScheme.primary,
-                                            trackColor = MaterialTheme.colorScheme.error.copy(alpha = 0.25f),
-                                        )
+                                                .height(10.dp)
+                                                .clip(RoundedCornerShape(5.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(wAct)
+                                                    .background(EsmeraldaMetical)
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(wCp)
+                                                    .background(AmbarSelo)
+                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .weight(wPas)
+                                                    .background(BrandRose)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text("Act: ${(wAct * 100).toInt()}%", fontSize = 9.sp, color = EsmeraldaMetical, fontWeight = FontWeight.Bold)
+                                            Text("C.P.: ${(wCp * 100).toInt()}%", fontSize = 9.sp, color = AmbarSelo, fontWeight = FontWeight.Bold)
+                                            Text("Pas: ${(wPas * 100).toInt()}%", fontSize = 9.sp, color = BrandRose, fontWeight = FontWeight.Bold)
+                                        }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
@@ -370,7 +401,7 @@ fun EmpresaDetailScreen(
                                                 .fillMaxHeight()
                                                 .background(
                                                     if (isPassivo) MaterialTheme.colorScheme.error 
-                                                    else MaterialTheme.colorScheme.primary
+                                                    else EsmeraldaMetical
                                                 )
                                         )
 
@@ -407,18 +438,18 @@ fun EmpresaDetailScreen(
                                                 ValorMonetarioText(
                                                     valor = item.valor,
                                                     style = ContaMonetariaTextStyle.Bold,
-                                                    color = if (isPassivo) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                                    color = if (isPassivo) MaterialTheme.colorScheme.error else EsmeraldaMetical
                                                 )
                                                 Spacer(modifier = Modifier.height(4.dp))
                                                 IconButton(
                                                     onClick = { viewModel.deleteElemento(item) },
-                                                    modifier = Modifier.size(24.dp)
+                                                    modifier = Modifier.size(48.dp)
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Default.DeleteOutline,
                                                         contentDescription = "Remover",
                                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                                        modifier = Modifier.size(18.dp)
+                                                        modifier = Modifier.size(20.dp)
                                                     )
                                                 }
                                             }

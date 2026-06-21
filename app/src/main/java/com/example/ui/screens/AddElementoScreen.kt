@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ContaPGC
 import com.example.data.gemini.GeminiClassifier
+import com.example.ui.components.ContaPGCChip
 import androidx.compose.ui.platform.LocalContext
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.AccountingViewModel
@@ -288,9 +289,11 @@ fun AddElementoScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = if (aiError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
-                            else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                            containerColor = if (aiError != null) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
+                            else Color(0xFFFFFBEB) // Ivory cream ledger sheet tone
                         ),
+                        border = if (aiError != null) BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                                 else BorderStroke(1.dp, AmbarSelo.copy(alpha = 0.4f)),
                         shape = RoundedCornerShape(AppRadius.sm),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -304,7 +307,7 @@ fun AddElementoScreen(
                                     text = if (aiError != null) "Aviso de IA" else "Classificação Sugerida por IA",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp,
-                                    color = if (aiError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                    color = if (aiError != null) MaterialTheme.colorScheme.error else IndigoCapulana
                                 )
                                 Text(
                                     text = "Configurar Chave",
@@ -524,24 +527,20 @@ fun AddElementoScreen(
                                 selectedConta = c
                                 searchAccountQuery = "${c.codigo} - ${c.titulo}"
                             },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(AppRadius.md),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Row(
-                            modifier = Modifier.padding(14.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(c.codigo, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(c.titulo, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            ContaPGCChip(
+                                codigo = c.codigo,
+                                titulo = c.titulo
+                            )
                         }
                     }
                 }
@@ -549,9 +548,9 @@ fun AddElementoScreen(
                 item {
                     val s = selectedConta!!
                     Card(
-                        border = BorderStroke(1.dp, Color(0xFFA7F3D0)), // Light Emerald outline
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)), // Slate Light Green
-                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.5.dp, EsmeraldaMetical.copy(alpha = 0.5f)), // Genuine Metical outline
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
+                        shape = RoundedCornerShape(AppRadius.md),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {

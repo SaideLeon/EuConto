@@ -47,6 +47,21 @@ class AccountingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // Map of each company ID to its corresponding portfolio health status (ResumoPatrimonial) computed dynamically
+    val empresasResumo: StateFlow<Map<Long, ResumoPatrimonial>> = combine(
+        empresas,
+        repository.allElementos,
+        contasMap
+    ) { emps, elements, cMap ->
+        val map = mutableMapOf<Long, ResumoPatrimonial>()
+        val elementsByEmp = elements.groupBy { it.empresaId }
+        for (emp in emps) {
+            val els = elementsByEmp[emp.id] ?: emptyList()
+            map[emp.id] = repository.calculateResumoPatrimonial(els, cMap)
+        }
+        map
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     // Structured Class List for reports
     val inventarioClasses: StateFlow<List<GrupoClasse>> = combine(elementos, contasMap) { els, maps ->
         repository.generateInventarioEstruturado(els, maps)

@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -58,7 +59,7 @@ fun ValorMonetarioText(
         },
         style = TextStyle(
             fontFeatureSettings = "tnum",
-            fontFamily = FontFamily.Default,
+            fontFamily = FontFamily.Monospace,
             letterSpacing = if (style == ContaMonetariaTextStyle.Header) (-0.8).sp else (-0.1).sp
         )
     )
@@ -85,11 +86,14 @@ fun ContaPGCChip(
         '7' -> Pair(Color(0xFFEEF2FF), Color(0xFF4338CA)) // Indigo
         else -> Pair(Slate100, Slate600) // Slate Gray
     }
+    
+    val stampShape = RoundedCornerShape(4.dp)
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(AppRadius.xs))
-            .background(backgroundColor)
+            .clip(stampShape)
+            .border(1.dp, textColor.copy(alpha = 0.25f), stampShape)
+            .background(backgroundColor.copy(alpha = 0.95f))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(

@@ -17,13 +17,19 @@ val Slate100 = Color(0xFFF1F5F9)
 val Slate50  = Color(0xFFF8FAFC)
 
 // ===== BRAND =====
-val BrandPrimary = Color(0xFF0F172A)      // Slate profundo — base de marca
-val BrandTeal = Color(0xFF0D9488)         // Teal — activo / positivo
-val BrandTealLight = Color(0xFF2DD4BF)    // Teal claro — glow / gradiente
+val IndigoCapulana = Color(0xFF1E2768)      // Azul-índigo profundo — base institucional moçambicana
+val EsmeraldaMetical = Color(0xFF0F7A5C)    // Verde-esmeralda terroso — activo / positivo
+val EsmeraldaGlow = Color(0xFF34D399)       // Verde claro vibrante para glows e gradientes
+val AmbarSelo = Color(0xFFC2780C)           // Âmbar oficial — capital próprio / avisos regulatórios
+val TerracotaArquivo = Color(0xFF9A4A2B)    // Terracota — selos de cartório/notariado, usado com extrema raridade
+
+val BrandPrimary = IndigoCapulana
+val BrandTeal = EsmeraldaMetical
+val BrandTealLight = EsmeraldaGlow
 val BrandOcean = Color(0xFF0284C7)        // Azul — acções secundárias
-val BrandAmber = Color(0xFFD97706)        // Âmbar — capital próprio
+val BrandAmber = AmbarSelo
 val BrandAmberLight = Color(0xFFFBBF24)
-val BrandRose = Color(0xFFE11D48)         // Rosa — passivo / erro
+val BrandRose = Color(0xFFBE123C)         // Rosa — passivo / erro
 val BrandRoseLight = Color(0xFFFB7185)
 
 // ===== SEMANTIC SURFACES (Light) =====

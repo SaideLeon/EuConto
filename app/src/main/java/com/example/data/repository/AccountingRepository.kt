@@ -58,6 +58,7 @@ class AccountingRepository(context: Context) {
     private val dao = db.dao()
 
     val empresas: Flow<List<Empresa>> = dao.getAllEmpresas()
+    val allElementos: Flow<List<ElementoPatrimonial>> = dao.getAllElementos()
 
     fun getEmpresaById(id: Long): Flow<Empresa?> = dao.getEmpresaByIdFlow(id)
 
